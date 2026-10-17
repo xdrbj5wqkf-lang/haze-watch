@@ -115,14 +115,19 @@ def load_fires(now):
 
 
 def load_grid():
-    """1-degree grid of 850 hPa wind and rain, hourly, 2 days back to 4 days ahead."""
+    """850 hPa wind and rain, hourly, 2 days back to 4 days ahead, on a 1-degree grid.
+    Fetched on a 2-degree grid (about 135 points, well inside Open-Meteo's free daily allowance
+    when run hourly) and interpolated to 1 degree here; 850 hPa winds vary smoothly at that scale."""
     R = CFG["region"]
     G = {"lat0": R["south"], "lon0": R["west"], "nlat": R["north"] - R["south"] + 1,
          "nlon": R["east"] - R["west"] + 1, "step": 1}
-    pts = [(G["lat0"] + i, G["lon0"] + j) for i in range(G["nlat"]) for j in range(G["nlon"])]
+    C = 2
+    clat = list(range(G["lat0"], G["lat0"] + G["nlat"] + C - 1, C))     # covers the fine grid
+    clon = list(range(G["lon0"], G["lon0"] + G["nlon"] + C - 1, C))
+    cpts = [(la, lo) for la in clat for lo in clon]
     res = []
-    for c, k in enumerate(range(0, len(pts), 160)):
-        chunk = pts[k:k + 160]
+    for c, k in enumerate(range(0, len(cpts), 150)):
+        chunk = cpts[k:k + 150]
         q = urllib.parse.urlencode({
             "latitude": ",".join(str(p[0]) for p in chunk), "longitude": ",".join(str(p[1]) for p in chunk),
             "hourly": "wind_speed_850hPa,wind_direction_850hPa,precipitation", "wind_speed_unit": "ms",
@@ -130,17 +135,26 @@ def load_grid():
         j = json.loads(get("https://api.open-meteo.com/v1/forecast?" + q, f"grid_{c}.json"))
         res.extend(j if isinstance(j, list) else [j])
     times = res[0]["hourly"]["time"]
-    NT, NG = len(times), len(pts)
-    U = [[0.0] * NG for _ in range(NT)]
-    V = [[0.0] * NG for _ in range(NT)]
-    P = [[0.0] * NG for _ in range(NT)]
+    NT, nc = len(times), len(cpts)
+    cU = [[0.0] * nc for _ in range(NT)]; cV = [[0.0] * nc for _ in range(NT)]; cP = [[0.0] * nc for _ in range(NT)]
     for g, w in enumerate(res):
         hs, hd, hp = w["hourly"]["wind_speed_850hPa"], w["hourly"]["wind_direction_850hPa"], w["hourly"]["precipitation"]
         for h in range(NT):
             sp, d = hs[h] or 0.0, math.radians(hd[h] or 0.0)
-            U[h][g] = -sp * math.sin(d)
-            V[h][g] = -sp * math.cos(d)
-            P[h][g] = hp[h] or 0.0
+            cU[h][g] = -sp * math.sin(d); cV[h][g] = -sp * math.cos(d); cP[h][g] = hp[h] or 0.0
+    ncl = len(clon)
+    NG = G["nlat"] * G["nlon"]
+    weights = []
+    for i in range(G["nlat"]):
+        for j in range(G["nlon"]):
+            y, x = i / C, j / C
+            i0, j0 = min(int(y), len(clat) - 2), min(int(x), ncl - 2)
+            fy, fx = y - i0, x - j0
+            weights.append(((i0 * ncl + j0, (1 - fy) * (1 - fx)), (i0 * ncl + j0 + 1, (1 - fy) * fx),
+                            ((i0 + 1) * ncl + j0, fy * (1 - fx)), ((i0 + 1) * ncl + j0 + 1, fy * fx)))
+    def fine(A):
+        return [[sum(A[h][k] * wgt for k, wgt in weights[g]) for g in range(NG)] for h in range(NT)]
+    U, V, P = fine(cU), fine(cV), fine(cP)
     t0 = datetime.strptime(times[0], "%Y-%m-%dT%H:%M").replace(tzinfo=timezone.utc).timestamp()
     return G, t0, NT, U, V, P, times
 
@@ -478,16 +492,62 @@ def fmt_time(ts):
     return d.strftime("%-I%p").lower() if d.minute == 0 else d.strftime("%-I:%M%p").lower()
 
 
+
+def previous_latest():
+    url = (CFG.get("app_url") or "").rstrip("/")
+    if FIX:
+        path = os.path.join(FIX, "previous_latest.json")
+        return json.load(open(path)) if os.path.exists(path) else None
+    if not url:
+        return None
+    try:
+        return json.loads(get(url + "/data/latest.json?t=" + str(int(time.time())), "previous_latest.json"))
+    except Exception as ex:
+        log("previous forecast unavailable:", ex)
+        return None
+
+
+def carry_forward(M, prev, places, now_hour):
+    """Reuse the last run's fires and smoke, shifted to the current hour."""
+    pnow = datetime.fromisoformat(prev["meta"]["nowISO"].replace("Z", "+00:00")).timestamp()
+    dh = max(0, int(round((now_hour - pnow) / H)))
+    M["hot"], M["tracks"] = prev.get("hot", ""), prev.get("tracks", [])
+    sm = prev.get("smoke") or []
+    shift = dh // 3
+    M["smoke"] = (sm[shift:] + [sm[-1]] * shift)[:25] if sm else M["smoke"]
+    byid = {p["id"]: p for p in prev.get("places", [])}
+    for i, p in enumerate(places):
+        q = byid.get(p["id"])
+        if q:
+            sc = q["sc"][dh:] + [0] * dh
+            M["score"][i] = sc[:len(M["score"][i])]
+            M["src_reg"][i] = {s[0]: s[1] for s in q.get("srcs", [])}
+    M["regions_prev"] = prev.get("regions", {})
+    M["meta_prev"] = prev["meta"]
+    M["fires_stale"] = True
+
+
 def main():
     now = time.time() if not FIX else json.load(open(os.path.join(FIX, "now.json")))["now"]
     places = CFG["places"]
-    fires = load_fires(now)
+    try:
+        fires = load_fires(now)
+        prev = None
+    except RuntimeError as ex:
+        # NASA briefly unreachable: keep the last fire picture, refresh everything else
+        log("fires unavailable, carrying the previous fire picture forward:", ex)
+        prev = previous_latest()
+        if not prev:
+            raise
+        fires = []
     G, t0, NT, U, V, P, times = load_grid()
     cams = load_cams(places, times)
     stations, obs = load_stations(places, now)
     M = run_model(fires, G, t0, NT, U, V, P, places, now)
     ni, H0, H1, samp = M["now_idx"], M["H0"], M["H1"], M["samp"]
     now_hour = t0 + ni * H
+    if prev:
+        carry_forward(M, prev, places, now_hour)
 
     out_places = []
     for i, p in enumerate(places):
@@ -563,11 +623,12 @@ def main():
         "meta": {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat().replace("+00:00", "Z"),
                  "nowISO": datetime.fromtimestamp(now_hour, timezone.utc).isoformat().replace("+00:00", "Z"),
                  "H0off": -24, "mode": "live",
-                 "hotspots24": sum(1 for f in fires if now - f["ts"] < 24 * H),
-                 "hotspots48": sum(1 for f in fires if now - f["ts"] < 48 * H),
-                 "latestFire": datetime.fromtimestamp(max(f["ts"] for f in fires), timezone.utc).isoformat().replace("+00:00", "Z"),
+                 "hotspots24": sum(1 for f in fires if now - f["ts"] < 24 * H) if fires else M["meta_prev"].get("hotspots24", 0),
+                 "hotspots48": sum(1 for f in fires if now - f["ts"] < 48 * H) if fires else M["meta_prev"].get("hotspots48", 0),
+                 "latestFire": datetime.fromtimestamp(max(f["ts"] for f in fires), timezone.utc).isoformat().replace("+00:00", "Z") if fires else M["meta_prev"].get("latestFire"),
+                 "firesStale": bool(M.get("fires_stale")),
                  "grid": G, "stationsUsed": bool(WAQI)},
-        "regions": regions, "places": out_places, "tracks": M["tracks"], "hot": M["hot"],
+        "regions": regions if fires else M.get("regions_prev", {}), "places": out_places, "tracks": M["tracks"], "hot": M["hot"],
         "smoke": M["smoke"], "wind": M["wind"], "stations": stations, "accuracy": acc,
     }
     os.makedirs(OUT_DIR, exist_ok=True)
