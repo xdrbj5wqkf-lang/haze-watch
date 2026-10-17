@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Haze Watch</title>
+<meta name="description" content="72-hour haze outlook: fire hotspots, CAMS PM2.5 and smoke tracked along the wind.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Haze Watch">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#eef1f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12191d" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a met-office haze bulletin. Phone: one column. iPad landscape: verdict cards on the left, drift map pinned on the right */
+:root{
+  --bg:#eef1f0; --panel:#fbfcfb; --ink:#17232a; --ink-2:#4e5d64; --rule:#d5dcda;
+  --sea:#dfe8ea; --land:#f6f4ef; --land-edge:#b9bfbb; --my:#2f6f86;
+  --ember:#d4521c; --ember-2:#f0a35a; --smoke:#6b5d52; --wind:#2f6f86; --accent:#2f6f86;
+  --b0:#2a78c4; --b1:#3c9a4a; --b2:#e3b420; --b3:#e07b22; --b4:#c8312b;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",-apple-system,"Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root{
+  --bg:#12191d; --panel:#192227; --ink:#e7ecea; --ink-2:#9fadb2; --rule:#2c393f;
+  --sea:#15232a; --land:#243037; --land-edge:#3d4b52; --my:#7cc0d6;
+  --ember:#ff7a3d; --ember-2:#ffb878; --smoke:#c9b8a8; --wind:#7cc0d6; --accent:#7cc0d6;
+  --b0:#4a95dc; --b1:#56b864; --b2:#efc63c; --b3:#f08f3c; --b4:#e5564f; color-scheme:dark }}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:1400px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px;display:grid;gap:24px}
+.mast{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.mast h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6vw,40px);letter-spacing:-.01em;margin:0;line-height:1}
+.mast-r{display:flex;align-items:center;gap:10px}
+.issued{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.lede{font-family:var(--display);font-weight:500;font-size:clamp(18px,4.4vw,23px);line-height:1.3;max-width:62ch;margin:10px 0 8px;text-wrap:balance}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--rule);background:var(--panel);border-radius:999px;padding:3px 9px;color:var(--ink-2)}
+.chip b{color:var(--ink);font-weight:500}
+.chip.stale{border-color:var(--b3);color:var(--b3)}
+h2{font-family:var(--display);font-weight:700;font-size:20px;margin:0}
+.sec-head{display:grid;gap:4px;margin-bottom:12px}
+.sec-head p{margin:0;color:var(--ink-2);font-size:14px;max-width:70ch}
+.layout{display:grid;gap:24px}
+@media (min-width:1024px){ .layout{grid-template-columns:minmax(360px,0.85fr) minmax(0,1.3fr);align-items:start}
+  .mapcol{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)} }
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+@media (min-width:1024px){ .cards{grid-template-columns:1fr} }
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:14px;display:grid;gap:10px;min-width:0;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.card:focus-visible,.btn:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.place{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.15}
+.verdict{font-size:14.5px;color:var(--ink-2);margin-top:2px}
+.band{display:grid;justify-items:end;gap:2px;flex-shrink:0}
+.pill{display:inline-flex;align-items:center;font-weight:700;font-size:13px;border-radius:999px;padding:3px 10px;color:#fff;white-space:nowrap}
+.pill.dark-text{color:#1b1b1b}
+.reading{font-family:var(--mono);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.spark{width:100%;height:auto;display:block}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13.5px;margin:0}
+.facts dt{color:var(--ink-2)} .facts dd{margin:0;min-width:0}
+.conf{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+.conf.high{color:var(--b1)} .conf.medium{color:var(--b3)} .conf.low{color:var(--b4)}
+.mapbox{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px;display:grid;gap:10px}
+#map{display:block;width:100%;height:auto;border-radius:8px;background:var(--sea);touch-action:pan-y}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.btn{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 16px;cursor:pointer;min-height:40px}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.scrub{flex:1 1 260px;display:grid;gap:2px;min-width:0}
+input[type=range]{width:100%;accent-color:var(--accent);height:32px}
+.ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.when{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink-2);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:50%;display:inline-block}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rule)}
+th{font-weight:700;font-size:12px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em}
+td.num,th.num{text-align:right}
+.bar{height:8px;border-radius:4px;background:var(--ember);opacity:.85}
+.notes{font-size:14px;color:var(--ink-2);display:grid;gap:8px;max-width:72ch}
+.notes p{margin:0} .notes strong{color:var(--ink)}
+footer{font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--rule);padding-top:12px;display:grid;gap:4px}
+a{color:var(--accent)}
+.maplabel{font-family:var(--body);font-weight:700;font-size:15px;paint-order:stroke;stroke:var(--land);stroke-width:4px;fill:var(--ink)}
+.maplabel.sea{font-weight:400;font-style:italic;font-size:13px;fill:var(--ink-2);stroke:var(--sea)}
+.empty{padding:28px;border:1px dashed var(--rule);border-radius:12px;color:var(--ink-2)}
+.install{display:none;font-size:13.5px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:10px 14px;color:var(--ink-2)}
+.install.show{display:block}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mast"><h1>Haze Watch</h1><div class="mast-r"><span class="issued" id="issued">Loading…</span><button class="btn ghost" id="refresh" type="button">Refresh</button></div></div>
+    <p class="lede" id="lede"></p>
+    <div class="chips" id="chips"></div>
+  </header>
+  <p class="install" id="install">Add Haze Watch to your Home Screen: tap the Share button, then <b>Add to Home Screen</b>. It then opens full screen like an app.</p>
+
+  <div class="layout">
+    <section aria-labelledby="h-today">
+      <div class="sec-head"><h2 id="h-today">Today and the next three days</h2><p>Air quality is the CAMS PM2.5 forecast on the Malaysian API scale. Smoke bars are our tracking of fire smoke along the wind. Tap a place to find it on the map.</p></div>
+      <div class="cards" id="cards"><div class="empty">Fetching the latest forecast…</div></div>
+    </section>
+
+    <section aria-labelledby="h-map" class="mapcol">
+      <div class="mapbox">
+        <div class="sec-head" style="margin-bottom:0"><h2 id="h-map">Where the smoke is heading</h2><p>Drag through the next 72 hours. Dots are hotspots, the brown haze is tracked smoke, arrows are wind at about 1.5&nbsp;km, squares are monitoring stations.</p></div>
+        <div class="controls">
+          <button class="btn" id="play" type="button" aria-pressed="false">Play</button>
+          <div class="scrub"><input id="t" type="range" min="0" max="72" step="3" value="0" aria-label="Forecast hour"><div class="ticks"><span>Now</span><span>+24h</span><span>+48h</span><span>+72h</span></div></div>
+          <div class="when" id="when" aria-live="polite"></div>
+        </div>
+        <svg id="map" viewBox="0 0 1000 600" role="img" aria-label="Map of fire hotspots, smoke and wind over Sumatra, the Malay Peninsula and Borneo"></svg>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--ember)"></i>Hotspot, last 24h</span>
+          <span><i class="sw" style="background:var(--ember-2);opacity:.6"></i>24–48h ago</span>
+          <span><i class="sw" style="background:var(--smoke);opacity:.55;border-radius:3px"></i>Tracked smoke</span>
+          <span><svg width="26" height="10" aria-hidden="true"><path d="M1 5H20" stroke="var(--wind)" stroke-width="1.6"/><path d="M20 1L25 5L20 9" fill="var(--wind)"/></svg>Wind</span>
+          <span><i class="sw" style="background:var(--b1);border-radius:2px"></i>Station reading</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="grid2">
+    <div>
+      <div class="sec-head"><h2>Fires in the last 24 hours</h2></div>
+      <div class="tablebox"><table id="regions"><thead><tr><th>Area</th><th class="num">Hotspots</th><th class="num">High conf.</th><th class="num">Fire power, MW</th><th style="width:26%"></th></tr></thead><tbody></tbody></table></div>
+      <p class="reading" style="margin-top:8px">VIIRS on Suomi NPP, NOAA-20 and NOAA-21. Fire power sums every satellite pass, so a fire seen twice counts twice.</p>
+    </div>
+    <div>
+      <div class="sec-head"><h2>Forecast check</h2><p>How far off the 24-hour-ahead forecast was against station readings, compared with simply assuming tomorrow looks like today.</p></div>
+      <div id="acc"></div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2 style="color:var(--ink)">How to read this</h2>
+    <p><strong>The verdict comes from the CAMS forecast</strong>, a global model at about 45&nbsp;km, converted to an approximate Malaysian API. Official API uses a running average and reacts more slowly than these hourly values.</p>
+    <p><strong>Smoke tracking is our own model.</strong> Each fire cluster releases smoke that drifts with the forecast wind at 850&nbsp;hPa, thins over 36 hours and washes out in rain. It is not yet calibrated; read it for direction and timing.</p>
+    <p><strong>Confidence</strong> is high when the two agree and low when they disagree. Cloud can hide fires from the satellites, so a quiet map can understate smoke.</p>
+    <p>Updated every hour. For official readings use <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>
+  </section>
+
+  <footer>
+    <div>Fire data: <a href="https://firms.modaps.eosdis.nasa.gov/" target="_blank" rel="noopener">NASA FIRMS</a>. Forecasts: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, using Copernicus Atmosphere Monitoring Service (CAMS) data, CC&nbsp;BY&nbsp;4.0. Station readings: <a href="https://aqicn.org/" target="_blank" rel="noopener">World Air Quality Index project</a>. Coastlines: Natural Earth.</div>
+    <div>API conversion uses approximate PM2.5 breakpoints (15, 35, 150, 250&nbsp;µg/m³ for API 50, 100, 200, 300) pending confirmation against DOE guidance. Indicative only; not a health service.</div>
+  </footer>
+</div>
+
+<script>
+'use strict';
+const H = 3600e3, MYT = 8*H;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const myt = ms => new Date(ms + MYT);
+const hhmm = ms => { const d = myt(ms); let h = d.getUTCHours(); const ap = h < 12 ? 'am' : 'pm'; h = h % 12 || 12; const m = d.getUTCMinutes(); return h + (m ? ':' + String(m).padStart(2,'0') : '') + ap; };
+const dayName = ms => { const d = myt(ms); return DOW[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()]; };
+const regionName = r => r === 'Other' ? 'other areas' : r;
+
+function api(pm){ if (pm == null) return null;
+  if (pm <= 15) return pm/15*50; if (pm <= 35) return 50 + (pm-15)/20*50;
+  if (pm <= 150) return 100 + (pm-35)/115*100; if (pm <= 250) return 200 + (pm-150);
+  return 300 + (pm-250)/250*200; }
+const BANDS = [
+  {max:50,  name:'Good',           verdict:'Good to go',                            c:'--b0', dark:false},
+  {max:100, name:'Moderate',       verdict:'Fine for most; take care if sensitive', c:'--b1', dark:false},
+  {max:200, name:'Unhealthy',      verdict:'Move outdoor plans indoors',            c:'--b2', dark:true},
+  {max:300, name:'Very unhealthy', verdict:'Stay in, windows shut',                 c:'--b3', dark:true},
+  {max:1e9, name:'Hazardous',      verdict:'Stay in, windows shut',                 c:'--b4', dark:false}];
+const bandOf = a => BANDS.findIndex(b => a <= b.max);
+const PM_EDGES = [15,35,150,250];
+const smokeCat = s => s < 20 ? 0 : s < 100 ? 1 : s < 250 ? 2 : 3;
+const SMOKE_WORDS = ['none','light','moderate','heavy'];
+const compass = deg => ['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45) % 8];
+
+let D = null, GEO = null, NOW = 0, A = [], SCMAX = 60, SEL = -1, timer = null;
+const idxToMs = k => NOW + (k - 24) * H;
+const when = ms => hhmm(ms) + (myt(ms).getUTCDate() === myt(NOW).getUTCDate() ? '' : ' tomorrow');
+
+function bestWindow(p, dayOffset){
+  const d = myt(NOW); const mid = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - MYT + dayOffset*24*H;
+  let best = null;
+  for (let h = 7; h <= 16; h++){ const start = mid + h*H; const k = 24 + Math.round((start - NOW)/H);
+    if (k < 24 || k + 2 >= p.pm.length) continue; const v = p.pm.slice(k, k+3); if (v.some(x => x == null)) continue;
+    const m = (v[0]+v[1]+v[2])/3; if (!best || m < best.m) best = {start, m}; }
+  return best;
+}
+function analyse(p){
+  const nowPm = p.pm[24], nowApi = api(nowPm), nb = bandOf(nowApi);
+  let peakK = 25; for (let k = 25; k < 49; k++) if (p.pm[k] > p.pm[peakK]) peakK = k;
+  const peakApi = api(p.pm[peakK]), pb = bandOf(peakApi);
+  const scMax = Math.max(...p.sc.slice(25,49)), sCat = smokeCat(scMax);
+  let arrive = null; for (let k = 25; k < 49; k++) if (p.sc[k] >= 100) { arrive = k; break; }
+  let conf = 'medium';
+  if ((sCat >= 2 && pb >= 1) || (sCat <= 1 && pb <= 1)) conf = 'high';
+  if ((sCat === 3 && pb === 0) || (sCat === 0 && pb >= 2)) conf = 'low';
+  return {nowPm, nowApi, nb, peakK, peakApi, pb, sCat, arrive, conf};
+}
+function winText(p, off){ const b = bestWindow(p, off); if (!b) return off === 0 ? 'no daylight hours left' : '—';
+  const bi = bandOf(api(b.m)); const s = hhmm(b.start) + '–' + hhmm(b.start + 3*H);
+  return bi >= 2 ? 'no clean window (best ' + s + ', ' + BANDS[bi].name.toLowerCase() + ')' : s + ' · ' + BANDS[bi].name.toLowerCase(); }
+
+function spark(p, a){
+  const W = 320, Hh = 92, top = 6, plotH = 58, barTop = 70, barH = 18, n = p.pm.length;
+  const vals = p.pm.filter(v => v != null); const ymax = Math.max(60, ...vals, p.obs && p.obs.pm ? p.obs.pm : 0) * 1.08;
+  const X = k => 4 + k/(n-1)*(W-8), Y = v => top + plotH - v/ymax*plotH;
+  let bands = ''; const edges = [0, ...PM_EDGES, 1e9];
+  for (let b = 0; b < 5; b++){ const lo = edges[b], hi = Math.min(edges[b+1], ymax); if (lo >= ymax) break;
+    bands += '<rect x="4" y="' + Y(hi).toFixed(1) + '" width="' + (W-8) + '" height="' + (Y(lo)-Y(hi)).toFixed(1) + '" fill="var(' + BANDS[b].c + ')" opacity="0.13"/>'; }
+  let d = ''; p.pm.forEach((v,k) => { if (v == null) return; d += (d ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(v).toFixed(1); });
+  const area = d + 'L' + X(n-1).toFixed(1) + ' ' + (top+plotH) + 'L' + X(0) + ' ' + (top+plotH) + 'Z';
+  let bars = ''; p.sc.forEach((s,k) => { if (s < 5) return; const h = Math.max(1.5, Math.sqrt(s/SCMAX)*barH);
+    bars += '<rect x="' + (X(k)-1.1).toFixed(1) + '" y="' + (barTop+barH-h).toFixed(1) + '" width="2.2" height="' + h.toFixed(1) + '" fill="var(--smoke)" opacity="0.75"/>'; });
+  let days = ''; for (let k = 0; k < n; k++){ const t = myt(idxToMs(k)); if (t.getUTCHours() === 0) days += '<line x1="' + X(k).toFixed(1) + '" x2="' + X(k).toFixed(1) + '" y1="' + top + '" y2="' + (barTop+barH) + '" stroke="var(--rule)" stroke-dasharray="2 3"/><text x="' + (X(k)+3).toFixed(1) + '" y="' + (top+9) + '" font-size="9" font-family="var(--mono)" fill="var(--ink-2)">' + DOW[t.getUTCDay()] + '</text>'; }
+  const nx = X(24).toFixed(1);
+  const obs = p.obs && p.obs.pm != null ? '<rect x="' + (X(24)-3.5).toFixed(1) + '" y="' + (Y(p.obs.pm)-3.5).toFixed(1) + '" width="7" height="7" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"/>' : '';
+  return '<svg class="spark" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="' + esc(p.name) + ' PM2.5 from 24 hours ago to 72 hours ahead, with tracked smoke underneath">' + bands + days +
+    '<path d="' + area + '" fill="var(--ink)" opacity="0.07"/><path d="' + d + '" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>' +
+    '<line x1="' + nx + '" x2="' + nx + '" y1="' + top + '" y2="' + (barTop+barH) + '" stroke="var(--accent)" stroke-width="1.4"/>' +
+    '<text x="' + (+nx+3) + '" y="' + (barTop-3) + '" font-size="9" font-family="var(--mono)" fill="var(--accent)">now</text>' +
+    '<circle cx="' + X(a.peakK).toFixed(1) + '" cy="' + Y(p.pm[a.peakK]).toFixed(1) + '" r="3" fill="var(--ink)"/>' + obs +
+    '<line x1="4" x2="' + (W-4) + '" y1="' + (barTop+barH) + '" y2="' + (barTop+barH) + '" stroke="var(--rule)"/>' + bars +
+    '<text x="' + (W-4) + '" y="' + (barTop+8) + '" font-size="9" font-family="var(--mono)" fill="var(--ink-2)" text-anchor="end">smoke</text></svg>';
+}
+
+function renderHeader(){
+  const gen = Date.parse(D.meta.generated); const ageMin = Math.round((Date.now() - gen)/60000);
+  $('#issued').textContent = 'Updated ' + dayName(gen) + ', ' + hhmm(gen) + ' MYT';
+  let w = 0; A.forEach((a,i) => { if (a.peakApi > A[w].peakApi) w = i; });
+  const p = D.places[w], a = A[w];
+  const src = p.srcs.length && a.sCat >= 1 ? ' Smoke tracking traces it to fires in ' + p.srcs.map(s => regionName(s[0])).join(' and ') + '.' : '';
+  $('#lede').textContent = 'Worst in the next 24 hours: ' + p.name + ', peaking near API ' + Math.round(a.peakApi) + ' (' + BANDS[a.pb].name.toLowerCase() + ') around ' + when(idxToMs(a.peakK)).replace(/m$/, 'm today') + '.' + src;
+  const stale = ageMin > 150;
+  const chips = [['Hotspots, 24h', D.meta.hotspots24.toLocaleString('en-GB')], ['Latest satellite pass', dayName(Date.parse(D.meta.latestFire)) + ' ' + hhmm(Date.parse(D.meta.latestFire))], ['Stations', D.meta.stationsUsed ? (D.stations || []).length + ' live' : 'off']];
+  $('#chips').innerHTML = (stale ? '<span class="chip stale">Data is ' + Math.round(ageMin/60) + 'h old</span>' : '') + chips.map(c => '<span class="chip">' + esc(c[0]) + ' <b>' + esc(c[1]) + '</b></span>').join('');
+}
+
+function renderCards(){
+  $('#cards').innerHTML = D.places.map((p,i) => { const a = A[i], b = BANDS[a.nb]; const w = p.wd[0];
+    const srcTxt = a.sCat === 0 ? 'No fire smoke tracked in the next 24h' :
+      SMOKE_WORDS[a.sCat][0].toUpperCase() + SMOKE_WORDS[a.sCat].slice(1) + ' smoke from ' + (p.srcs.map(s => regionName(s[0])).join(' and ') || 'nearby fires') + (a.arrive ? ', from about ' + when(idxToMs(a.arrive)) : '');
+    const st = p.obs && p.obs.pm != null ? '<dt>Station</dt><dd>' + esc(p.obs.station || 'Nearest') + ' · API ~' + Math.round(api(p.obs.pm)) + ' (' + BANDS[bandOf(api(p.obs.pm))].name.toLowerCase() + '), ' + p.obs.km + ' km away</dd>' : '';
+    return '<button class="card" type="button" data-i="' + i + '" aria-pressed="' + (i === SEL) + '">' +
+      '<div class="card-top"><div><div class="place">' + esc(p.name) + '</div><div class="verdict">' + esc(b.verdict) + '</div></div>' +
+      '<div class="band"><span class="pill' + (b.dark ? ' dark-text' : '') + '" style="background:var(' + b.c + ')">API ~' + Math.round(a.nowApi) + ' · ' + b.name + '</span><span class="reading">PM2.5 ' + a.nowPm + ' µg/m³ forecast now</span></div></div>' +
+      spark(p, a) +
+      '<dl class="facts"><dt>Next 24h</dt><dd>Peaks near API ' + Math.round(a.peakApi) + ' around ' + when(idxToMs(a.peakK)) + ' · <span class="conf ' + a.conf + '">' + a.conf + ' confidence</span></dd>' + st +
+      '<dt>Best outdoors</dt><dd>Today ' + esc(winText(p,0)) + '<br>Tomorrow ' + esc(winText(p,1)) + '</dd>' +
+      '<dt>Smoke</dt><dd>' + esc(srcTxt) + '</dd>' +
+      '<dt>Wind aloft</dt><dd>From the ' + compass(w[0]) + ' at ' + w[1] + ' m/s</dd></dl></button>'; }).join('');
+  document.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => {
+    const i = +c.dataset.i; SEL = SEL === i ? -1 : i;
+    document.querySelectorAll('.card').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.i === SEL)));
+    drawFrame($('#t').value/3);
+    if (SEL >= 0 && innerWidth < 1024) $('#h-map').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); }));
+}
+
+let PX, PY, K;
+function renderMapBase(){
+  const B = GEO.box; K = B.K; PX = lon => (lon - B.L0) * K; PY = lat => (B.B1 - lat) * K;
+  const hot = D.hot ? D.hot.split(' ').map(t => ({f:+t[0], lat:(parseInt(t.slice(1,3),36)-40)/4 + 0.125, lon:(parseInt(t.slice(3,5),36)+360)/4 + 0.125, frp:parseInt(t.slice(5),36)})) : [];
+  const rr = f => Math.min(9, 1.3 + Math.sqrt(f)/5);
+  let s = '<defs><filter id="blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="16"/></filter><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--wind)"/></marker></defs>';
+  s += '<rect width="1000" height="600" fill="var(--sea)"/><path d="' + GEO.land + '" fill="var(--land)" stroke="var(--land-edge)" stroke-width="0.7"/>';
+  s += '<path d="' + GEO.borders + '" fill="none" stroke="var(--land-edge)" stroke-width="0.8" stroke-dasharray="3 2"/><path d="' + GEO.malaysia + '" fill="var(--my)" fill-opacity="0.07" stroke="var(--my)" stroke-width="1.1"/>';
+  for (let lon = 96; lon <= 120; lon += 4) s += '<line x1="' + PX(lon) + '" x2="' + PX(lon) + '" y1="0" y2="600" stroke="var(--ink)" stroke-opacity="0.05"/><text x="' + (PX(lon)+3) + '" y="594" font-family="var(--mono)" font-size="10" fill="var(--ink-2)">' + lon + '°E</text>';
+  for (const lat of [-4,0,4,8]) s += '<line y1="' + PY(lat) + '" y2="' + PY(lat) + '" x1="0" x2="1000" stroke="var(--ink)" stroke-opacity="0.05"/><text x="4" y="' + (PY(lat)+12) + '" font-family="var(--mono)" font-size="10" fill="var(--ink-2)">' + (lat === 0 ? '0°' : Math.abs(lat) + '°' + (lat < 0 ? 'S' : 'N')) + '</text>';
+  s += '<g id="smoke" filter="url(#blur)"></g>';
+  s += '<g>' + hot.filter(h => h.f >= 2).map(h => '<circle cx="' + PX(h.lon).toFixed(1) + '" cy="' + PY(h.lat).toFixed(1) + '" r="' + rr(h.frp).toFixed(1) + '" fill="var(--ember-2)" opacity="0.45"/>').join('') + '</g>';
+  s += '<g>' + hot.filter(h => h.f < 2).map(h => '<circle cx="' + PX(h.lon).toFixed(1) + '" cy="' + PY(h.lat).toFixed(1) + '" r="' + rr(h.frp).toFixed(1) + '" fill="var(--ember)" opacity="0.85"><title>' + h.frp + ' MW fire power in this 25 km cell, last 24h</title></circle>').join('') + '</g>';
+  s += '<g>' + (D.stations || []).map(st => { const b = BANDS[bandOf(api(st.pm))]; return '<rect x="' + (PX(st.lon)-3.5).toFixed(1) + '" y="' + (PY(st.lat)-3.5).toFixed(1) + '" width="7" height="7" rx="1.5" fill="var(' + b.c + ')" stroke="var(--panel)" stroke-width="1"><title>' + esc(st.name) + ': API ~' + Math.round(api(st.pm)) + ' (' + b.name + ')</title></rect>'; }).join('') + '</g>';
+  s += '<g id="tracks">' + D.tracks.slice(0, 10).map((t,i) => '<path d="' + t.pts.map((p,k) => (k ? 'L' : 'M') + PX(p[1]).toFixed(1) + ' ' + PY(p[0]).toFixed(1)).join('') + '" fill="none" stroke="var(--ember)" stroke-width="1.3" stroke-dasharray="3 3" opacity="0.55"><title>Smoke path from ' + esc(regionName(t.reg)) + ' fires (' + t.frp.toLocaleString('en-GB') + ' MW), next 72h</title></path><circle class="head" data-i="' + i + '" r="4" fill="var(--panel)" stroke="var(--ember)" stroke-width="2"/>').join('') + '</g><g id="wind"></g>';
+  s += '<text class="maplabel sea" x="' + PX(97.2) + '" y="' + PY(-2.5) + '">Indian Ocean</text><text class="maplabel sea" x="' + PX(107.2) + '" y="' + PY(6.5) + '">South China Sea</text><text class="maplabel sea" x="' + PX(100.4) + '" y="' + PY(3.9) + '" transform="rotate(-38 ' + PX(100.4) + ' ' + PY(3.9) + ')">Straits of Malacca</text>';
+  s += '<text class="maplabel" x="' + PX(99.3) + '" y="' + PY(0.6) + '">Sumatra</text><text class="maplabel" x="' + PX(112.2) + '" y="' + PY(-0.3) + '">Kalimantan</text><text class="maplabel" x="' + PX(111.6) + '" y="' + PY(2.6) + '">Sarawak</text><g id="places"></g>';
+  $('#map').innerHTML = s;
+}
+
+function drawFrame(f){
+  f = Math.round(f); const G = D.meta.grid;
+  const sm = D.smoke[f] || ''; let out = '';
+  for (let i = 0; i < G.nlat; i++) for (let j = 0; j < G.nlon; j++){ const q = +sm[i*G.nlon + j]; if (!q) continue;
+    out += '<rect x="' + PX(G.lon0 + j - 0.5).toFixed(0) + '" y="' + PY(G.lat0 + i + 0.5).toFixed(0) + '" width="' + K + '" height="' + K + '" fill="var(--smoke)" opacity="' + Math.min(0.85, 0.09*q + 0.04).toFixed(2) + '"/>'; }
+  $('#smoke').innerHTML = out;
+  const wv = D.wind[f] || ''; let w = ''; const ni = Math.ceil(G.nlat/2), nj = Math.ceil(G.nlon/2);
+  for (let i = 0; i < ni; i++) for (let j = 0; j < nj; j++){ const idx = (i*nj + j)*2; if (idx + 1 >= wv.length) continue;
+    const u = wv.charCodeAt(idx) - 77, v = wv.charCodeAt(idx+1) - 77; const lat = G.lat0 + 2*i, lon = G.lon0 + 2*j;
+    if (lon < 95.5 || lon > 119.5 || lat < -6.5 || lat > 7.5) continue; const sp = Math.hypot(u, v); if (sp < 0.5) continue;
+    const L = Math.min(34, 6 + sp*3.2), x = PX(lon), y = PY(lat), dx = u/sp*L, dy = -v/sp*L;
+    w += '<line x1="' + (x-dx/2).toFixed(1) + '" y1="' + (y-dy/2).toFixed(1) + '" x2="' + (x+dx/2).toFixed(1) + '" y2="' + (y+dy/2).toFixed(1) + '" stroke="var(--wind)" stroke-width="1.6" opacity="0.8" marker-end="url(#ah)"/>'; }
+  $('#wind').innerHTML = w;
+  document.querySelectorAll('#tracks .head').forEach(c => { const t = D.tracks[+c.dataset.i]; const p = t.pts[Math.min(f, t.pts.length-1)]; c.setAttribute('cx', PX(p[1]).toFixed(1)); c.setAttribute('cy', PY(p[0]).toFixed(1)); });
+  const k = 24 + f*3;
+  // label a place unless a nearby, earlier place is already labelled (keeps the Klang Valley readable)
+  const shown = [];
+  $('#places').innerHTML = D.places.map((p,i) => { const a = api(p.pm[k]), b = BANDS[bandOf(a)]; const x = PX(p.lon), y = PY(p.lat), sel = i === SEL;
+    const crowded = shown.some(q => Math.hypot(q[0]-x, q[1]-y) < 40); if (!crowded || sel) shown.push([x,y]);
+    return (sel ? '<circle cx="' + x + '" cy="' + y + '" r="13" fill="none" stroke="var(--accent)" stroke-width="2"/>' : '') +
+      '<circle cx="' + x + '" cy="' + y + '" r="7" fill="var(' + b.c + ')" stroke="var(--panel)" stroke-width="2"><title>' + esc(p.name) + ': API ~' + Math.round(a) + ' (' + b.name + ')</title></circle>' +
+      (crowded && !sel ? '' : '<text class="maplabel" style="font-size:13px" x="' + (x+9) + '" y="' + (y-6) + '">' + esc(p.name) + '</text>'); }).join('');
+  const ms = NOW + f*3*H;
+  $('#when').textContent = dayName(ms) + ', ' + hhmm(ms) + (f === 0 ? ' · now' : ' · +' + f*3 + 'h');
+}
+
+function renderTables(){
+  const regs = Object.entries(D.regions).sort((a,b) => b[1].frp - a[1].frp); const fmax = regs.length ? regs[0][1].frp : 1;
+  $('#regions tbody').innerHTML = regs.map(([r,o]) => '<tr><td>' + esc(r === 'Other' ? 'Other areas' : r) + '</td><td class="num">' + o.n.toLocaleString('en-GB') + '</td><td class="num">' + o.hi + '</td><td class="num">' + o.frp.toLocaleString('en-GB') + '</td><td><div class="bar" style="width:' + Math.max(1, o.frp/fmax*100).toFixed(1) + '%"></div></td></tr>').join('');
+  const acc = D.accuracy || {}; const ids = Object.keys(acc);
+  $('#acc').innerHTML = !D.meta.stationsUsed ? '<p class="empty">Add your WAQI token to switch on station readings; the check starts a day later.</p>' :
+    !ids.length ? '<p class="empty">Collecting readings. The first comparison appears 24 hours after stations come online, and becomes meaningful after a week or two.</p>' :
+    '<div class="tablebox"><table><thead><tr><th>Place</th><th class="num">Hours</th><th class="num">CAMS error</th><th class="num">“Same as yesterday”</th></tr></thead><tbody>' +
+    D.places.filter(p => acc[p.id]).map(p => { const r = acc[p.id]; const better = r.persist != null && r.cams < r.persist;
+      return '<tr><td>' + esc(p.name) + '</td><td class="num">' + r.n + '</td><td class="num"' + (better ? ' style="font-weight:700"' : '') + '>' + r.cams + ' µg/m³</td><td class="num">' + (r.persist ?? '—') + (r.persist != null ? ' µg/m³' : '') + '</td></tr>'; }).join('') + '</tbody></table></div><p class="reading">Mean absolute error of PM2.5, 24 hours ahead, last 15 days. Bold where the forecast beats assuming no change.</p>';
+}
+
+function render(){
+  NOW = Date.parse(D.meta.nowISO); A = D.places.map(analyse); SCMAX = Math.max(60, ...D.places.map(p => Math.max(...p.sc)));
+  renderHeader(); renderCards(); renderMapBase(); drawFrame($('#t').value/3); renderTables();
+}
+
+async function load(force){
+  const btn = $('#refresh'); btn.disabled = true; btn.textContent = 'Refreshing…';
+  try {
+    const [d, g] = await Promise.all([
+      fetch('data/latest.json' + (force ? '?t=' + Date.now() : ''), {cache: force ? 'reload' : 'default'}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      GEO ? Promise.resolve(GEO) : fetch('geo.json').then(r => r.json())]);
+    D = d; GEO = g; render();
+  } catch (e) {
+    if (!D) $('#cards').innerHTML = '<div class="empty">Could not load the forecast. Check your connection and tap Refresh. If this is a new install, the first hourly run may not have finished yet.</div>';
+    $('#issued').textContent = D ? $('#issued').textContent + ' · offline' : 'Offline';
+  } finally { btn.disabled = false; btn.textContent = 'Refresh'; }
+}
+
+$('#t').addEventListener('input', e => drawFrame(e.target.value/3));
+$('#play').addEventListener('click', e => { const b = e.currentTarget, sl = $('#t');
+  if (timer){ clearInterval(timer); timer = null; b.textContent = 'Play'; b.setAttribute('aria-pressed','false'); return; }
+  b.textContent = 'Pause'; b.setAttribute('aria-pressed','true'); if (+sl.value >= 72) sl.value = 0;
+  timer = setInterval(() => { let v = +sl.value + 3; if (v > 72){ clearInterval(timer); timer = null; b.textContent = 'Play'; b.setAttribute('aria-pressed','false'); return; } sl.value = v; drawFrame(v/3); }, 650); });
+$('#refresh').addEventListener('click', () => load(true));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && D && Date.now() - Date.parse(D.meta.generated) > 50*60e3) load(true); });
+
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+if (!standalone && /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document) $('#install').classList.add('show');
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+load(false);
+</script>
+</body>
+</html>
