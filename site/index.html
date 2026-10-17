@@ -57,6 +57,8 @@ a{color:#fff}
 .hero-num small{font-size:20px;font-weight:500;letter-spacing:.02em;vertical-align:top;position:relative;top:18px;margin-left:4px;color:var(--fg-2)}
 .hero-band{font-size:22px;font-weight:500;margin-top:2px}
 .hero-sub{font-size:17px;color:var(--fg-2);margin-top:4px;text-wrap:balance}
+.hero-src{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--fg-2);background:rgba(0,0,0,.14);border:.5px solid var(--hair);border-radius:999px;padding:4px 11px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.hero-src:empty{display:none}
 .hero-dots{display:none;justify-content:center;gap:7px;margin-top:14px}
 .hero-dots i{width:7px;height:7px;border-radius:50%;background:var(--fg-3);transition:background .3s, transform .3s var(--spring)}
 .hero-dots i.on{background:#fff;transform:scale(1.15)}
@@ -256,6 +258,7 @@ a{color:#fff}
         <div class="hero-num" id="heroNum">--<small>API</small></div>
         <div class="hero-band" id="heroBand">Loading the latest forecast</div>
         <div class="hero-sub" id="heroSub"></div>
+        <div class="hero-src" id="heroSrc"></div>
         <div class="hero-dots" id="heroDots"></div>
       </header>
       <div id="banner"></div>
@@ -345,7 +348,18 @@ function analyse(p){
   if ((sCat >= 2 && pb >= 1) || (sCat <= 1 && pb <= 1)) conf = 'High';
   if ((sCat === 3 && pb === 0) || (sCat === 0 && pb >= 2)) conf = 'Low';
   const obsApi = p.obs && p.obs.pm != null ? api(p.obs.pm) : null;
-  return {nowApi, nb, peakK, peakApi, pb, sCat, arrive, conf, obsApi};
+  const camsNow = api((p.cams || p.pm)[24]);
+  return {nowApi, nb, peakK, peakApi, pb, sCat, arrive, conf, obsApi, camsNow};
+}
+
+function sourceText(p, short){
+  const o = p.obs;
+  if (!o || o.pm == null) return short ? 'Forecast only' : 'Forecast only. No monitoring station within 25 km.';
+  const kind = o.type === 'sensor' ? 'Local sensor' : 'DOE station';
+  if (short) return kind + ' ' + o.km + ' km';
+  let s = kind + ' · ' + (o.station || 'nearby') + ' · ' + o.km + ' km';
+  if (o.shared > 0) s += ' · shared with ' + o.shared + ' other place' + (o.shared > 1 ? 's' : '');
+  return s;
 }
 
 /* ================= sky & haze animation ================= */
@@ -410,11 +424,12 @@ function renderHero(){
   const p = D.places[SEL], a = A[SEL], b = BANDS[a.nb];
   const hero = $('#hero'); hero.classList.remove('swap'); void hero.offsetWidth; hero.classList.add('swap');
   $('#heroLoc').textContent = 'Air quality now · ' + hh(NOW);
+  $('#heroSrc').textContent = sourceText(p, false);
   $('#heroPlace').textContent = p.name;
   countTo($('#heroNum'), Math.round(a.nowApi));
   $('#heroBand').textContent = b.name;
-  const peakTxt = a.pb > a.nb ? 'Rising to ' + Math.round(a.peakApi) + ' by ' + when(idx(a.peakK)) : a.peakApi < a.nowApi - 10 ? 'Easing over the next day' : 'Peak ' + Math.round(a.peakApi) + ' at ' + when(idx(a.peakK));
-  const stTxt = a.obsApi != null && Math.abs(a.obsApi - a.nowApi) >= 10 ? ' Nearest station reads ' + Math.round(a.obsApi) + '.' : '';
+  const peakTxt = a.peakApi > a.nowApi + 3 ? (a.pb > a.nb ? 'Rising to ' : 'Peaking near ') + Math.round(a.peakApi) + ' around ' + when(idx(a.peakK)) : (() => { const lo = Math.min(...p.pm.slice(25, 49).filter(v => v != null).map(api)); return lo < a.nowApi - 10 ? 'Easing to about ' + Math.round(lo) + ' over the next day' : 'Holding near this level today'; })();
+  const stTxt = a.obsApi != null && Math.abs(a.obsApi - a.camsNow) >= 10 ? ' The forecast alone said ' + Math.round(a.camsNow) + '.' : '';
   $('#heroSub').textContent = b.verdict + '. ' + peakTxt + '.' + stTxt;
   const dots = D.places.map((_, i) => '<i class="' + (i === SEL ? 'on' : '') + '"></i>').join('');
   $('#heroDots').innerHTML = dots;
@@ -455,8 +470,8 @@ function compareCard(p, a){
   let msg;
   if (!D.meta.stationsUsed) msg = 'Add your WAQI token to plot real station readings against the forecast.';
   else if (a.obsApi == null) msg = 'No monitoring station within 40 km, so only the forecast is shown.';
-  else { const gap = Math.round(a.obsApi - a.nowApi);
-    msg = 'The nearest station reads ' + Math.round(a.obsApi) + (Math.abs(gap) < 10 ? ', close to the forecast.' : ', ' + Math.abs(gap) + (gap > 0 ? ' above' : ' below') + ' the forecast.');
+  else { const gap = Math.round(a.obsApi - a.camsNow);
+    msg = (p.obs && p.obs.type === 'sensor' ? 'The local sensor reads ' : 'The nearest DOE station reads ') + Math.round(a.obsApi) + (Math.abs(gap) < 10 ? ', close to the forecast.' : ', ' + Math.abs(gap) + (gap > 0 ? ' above' : ' below') + ' the forecast.');
     const adj = adjusted(p); if (adj && Math.abs(gap) >= 10){ let pk = 24; for (let k = 25; k <= 48; k++) if (adj[k] != null && adj[k] > (adj[pk] ?? -1)) pk = k;
       msg += ' Adjusted for that gap, the next 24 hours peak near ' + Math.round(api(adj[pk])) + ' around ' + when(idx(pk)) + '.'; }
     if (obsN < 6) msg += ' Readings build up hourly; ' + obsN + ' so far.'; }
@@ -464,20 +479,20 @@ function compareCard(p, a){
     (a.obsApi != null || obsN ? '<span><svg width="12" height="12"><circle cx="6" cy="6" r="4" fill="#64d2ff"/></svg>Station reading</span>' : '') +
     (a.obsApi != null ? '<span><svg width="18" height="8"><path d="M1 4h16" stroke="#64d2ff" stroke-width="2" stroke-dasharray="4 3"/></svg>Forecast adjusted to station</span>' : '') + '</div>';
   return card('wide', 'chart', 'Forecast and readings', '<p class="lead" style="margin:0">' + esc(msg) + '</p>' + legend + '<div class="cmp" id="cmp"></div>' +
-    '<p class="tiny" style="margin:6px 0 0">Past 24 hours and next 24 hours, approximate API. ' + (p.obs && p.obs.station ? 'Station: ' + esc(p.obs.station) + ', ' + p.obs.km + ' km away.' : '') + '</p>');
+    '<p class="tiny" style="margin:6px 0 0">Past 24 hours and next 24 hours, approximate API. ' + esc(sourceText(p, false)) + '.' + (p.obs && p.obs.anchor ? ' Nearest DOE station (' + esc(p.obs.anchor.station) + ', ' + p.obs.anchor.km + ' km) reads ' + Math.round(api(p.obs.anchor.pm)) + '.' : '') + '</p>');
 }
 // forecast shifted by the current station gap, fading out over about 12 hours
 function adjusted(p){
-  const o = p.obs && p.obs.pm != null ? p.obs.pm : null; if (o == null || p.pm[24] == null) return null;
-  const gap = o - p.pm[24]; const out = [];
-  for (let k = 0; k <= 48; k++) out.push(k < 24 || p.pm[k] == null ? null : Math.max(0, p.pm[k] + gap * Math.exp(-(k - 24)/12)));
+  const c = p.cams || p.pm, o = p.obs && p.obs.pm != null ? p.obs.pm : null; if (o == null || c[24] == null) return null;
+  const gap = o - c[24]; const out = [];
+  for (let k = 0; k <= 48; k++) out.push(k < 24 || c[k] == null ? null : Math.max(0, c[k] + gap * Math.exp(-(k - 24)/12)));
   return out;
 }
 function drawCompare(){
   const host = document.getElementById('cmp'); if (!host) return;
   const p = D.places[SEL], a = A[SEL];
   const W = Math.max(300, Math.round(host.clientWidth || 340)), Hh = innerWidth >= 900 ? 230 : 200, L = 18, R = W - 34, T = 12, B = Hh - 24;
-  const f = p.pm.slice(0, 49).map(v => v == null ? null : api(v));
+  const f = (p.cams || p.pm).slice(0, 49).map(v => v == null ? null : api(v));
   const ob = (p.obsHist || []).map(v => v == null ? null : api(v));
   if (a.obsApi != null) ob[24] = a.obsApi;
   const adjPm = adjusted(p), ad = adjPm ? adjPm.map(v => v == null ? null : api(v)) : null;
@@ -589,7 +604,8 @@ function checkCard(){
 }
 function aboutCard(){
   return card('wide about', 'info', 'How to read Haze Watch',
-    '<p><b>The number</b> is the CAMS PM2.5 forecast for this hour, shown on an approximate Malaysian API scale. Official API is a running average, so it moves more slowly.</p>' +
+    '<p><b>The number</b> is the best estimate for this hour: the nearest DOE station, or a much closer local sensor that agrees with it, on an approximate Malaysian API scale. With no station nearby it falls back to the CAMS forecast.</p>' +
+    '<p><b>The hours ahead</b> start from that reading and blend back into the CAMS forecast over about 12 hours. CAMS works in 45 km squares, so on its own it cannot tell nearby places apart.</p>' +
     '<p><b>Smoke tracking</b> follows smoke from each fire cluster along the wind at 1.5 km. It is uncalibrated, so read it for direction and timing.</p>' +
     '<p><b>Official readings</b> are on <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>. Haze Watch is indicative only and not a health service.</p>');
 }
@@ -610,7 +626,7 @@ function buildMap(){
   s += '<g>' + hot.filter(h => h.f >= 2).map(h => '<circle cx="' + PX(h.lon).toFixed(1) + '" cy="' + PY(h.lat).toFixed(1) + '" r="' + rr(h.frp).toFixed(1) + '" fill="#ffb878" opacity=".38"/>').join('') + '</g>';
   s += '<g>' + recent.map(h => '<circle cx="' + PX(h.lon).toFixed(1) + '" cy="' + PY(h.lat).toFixed(1) + '" r="' + rr(h.frp).toFixed(1) + '" fill="#ff7a3d" opacity=".9"/>').join('') + '</g>';
   s += '<g>' + top.map((h, i) => '<circle class="pulse" cx="' + PX(h.lon).toFixed(1) + '" cy="' + PY(h.lat).toFixed(1) + '" r="' + (rr(h.frp)+1).toFixed(1) + '" fill="none" stroke="#ff9a5c" stroke-width="1.5" style="animation-delay:' + ((i*170) % 2400) + 'ms"/>').join('') + '</g>';
-  s += '<g>' + (D.stations || []).map(st => '<rect x="' + (PX(st.lon)-3.5).toFixed(1) + '" y="' + (PY(st.lat)-3.5).toFixed(1) + '" width="7" height="7" rx="1.5" fill="' + BANDS[bandOf(api(st.pm))].c + '" stroke="#0f2236"/>').join('') + '</g>';
+  s += '<g>' + (D.stations || []).map(st => st.type === 'sensor' ? '<circle cx="' + PX(st.lon).toFixed(1) + '" cy="' + PY(st.lat).toFixed(1) + '" r="2.2" fill="' + BANDS[bandOf(api(st.pm))].c + '" opacity=".8"/>' : '<rect x="' + (PX(st.lon)-3.5).toFixed(1) + '" y="' + (PY(st.lat)-3.5).toFixed(1) + '" width="7" height="7" rx="1.5" fill="' + BANDS[bandOf(api(st.pm))].c + '" stroke="#0f2236"/>').join('') + '</g>';
   s += '<g>' + D.tracks.slice(0, 10).map((t, i) => '<path d="' + t.pts.map((p, k) => (k ? 'L' : 'M') + PX(p[1]).toFixed(1) + ' ' + PY(p[0]).toFixed(1)).join('') + '" fill="none" stroke="#ff9a5c" stroke-width="1.2" stroke-dasharray="3 4" opacity=".5"/><circle class="head" data-i="' + i + '" r="4.5" fill="#fff" stroke="#ff7a3d" stroke-width="2"/>').join('') + '</g><g id="windG"></g><g id="placesG"></g>';
   const lab = (t, x, y, sz, w, o) => '<text x="' + PX(x) + '" y="' + PY(y) + '" font-family="-apple-system,system-ui,sans-serif" font-size="' + sz + '" font-weight="' + w + '" fill="rgba(255,255,255,' + o + ')">' + t + '</text>';
   s += lab('Sumatra', 99.2, .5, 16, 700, .55) + lab('Kalimantan', 112, -.4, 16, 700, .55) + lab('Sarawak', 111.4, 2.5, 14, 700, .5) + lab('South China Sea', 106.8, 6.6, 13, 500, .35) + lab('Indian Ocean', 96.8, -3.2, 13, 500, .35);
@@ -657,7 +673,7 @@ function autoplay(on){
 /* ================= places list ================= */
 function tileHTML(p, i){
   const a = A[i], b = BANDS[a.nb], pal = SKY_DAY[a.nb];
-  return '<button class="ptile' + (i === SEL ? ' sel' : '') + '" type="button" data-pick="' + i + '"><span class="bg" style="background:linear-gradient(160deg,' + pal[0] + ',' + pal[1] + ')"></span><span class="pn">' + esc(p.name) + '</span><span class="pv">' + Math.round(a.nowApi) + '</span><span class="ps">' + b.name + '</span><span class="pb">Peak ' + Math.round(a.peakApi) + ' around ' + esc(when(idx(a.peakK))) + (a.sCat >= 2 ? ' · smoke from ' + esc(regionName((p.srcs[0] || ['nearby fires'])[0])) : '') + '</span></button>';
+  return '<button class="ptile' + (i === SEL ? ' sel' : '') + '" type="button" data-pick="' + i + '"><span class="bg" style="background:linear-gradient(160deg,' + pal[0] + ',' + pal[1] + ')"></span><span class="pn">' + esc(p.name) + '</span><span class="pv">' + Math.round(a.nowApi) + '</span><span class="ps">' + b.name + '</span><span class="pb">Peak ' + Math.round(a.peakApi) + ' around ' + esc(when(idx(a.peakK))) + ' · ' + esc(sourceText(p, true)) + (p.obs && p.obs.shared > 0 ? ' (shared)' : '') + '</span></button>';
 }
 function renderLists(){
   const html = D.places.map(tileHTML).join('');
@@ -688,6 +704,7 @@ function select(i, fromSwipe){
   if (!fromSwipe) scrollTo({top:0, behavior: REDUCED ? 'auto' : 'smooth'});
 }
 function render(){
+  D.places.forEach(p => { if (!p.cams){ p.cams = p.pm; if (p.est) p.pm = p.est; } });
   NOW = Date.parse(D.meta.nowISO); A = D.places.map(analyse); SCMAX = Math.max(60, ...D.places.map(p => Math.max(...p.sc)));
   try { const id = localStorage.getItem('hw-place'); const i = D.places.findIndex(p => p.id === id); if (i >= 0) SEL = i; } catch (e) {}
   if (SEL >= D.places.length) SEL = 0;

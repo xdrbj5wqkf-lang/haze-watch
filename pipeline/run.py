@@ -175,36 +175,114 @@ def usaqi_to_pm(a):
     return 500.0
 
 
-def load_stations(places):
+def km_between(a_lat, a_lon, b_lat, b_lon):
+    return math.hypot((a_lat - b_lat) * 111.2, (a_lon - b_lon) * 111.2 * math.cos(math.radians((a_lat + b_lat) / 2)))
+
+
+def parse_time(iso):
+    try:
+        return datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return None
+
+
+def load_stations(places, now):
+    """Pick a reading for each place: the nearest official station (DOE), or a much closer
+    local sensor when one agrees reasonably with the official network."""
     if not WAQI:
         return [], [None] * len(places)
     R = CFG["region"]
-    stations = []
-    try:
-        j = json.loads(get("https://api.waqi.info/map/bounds?" + urllib.parse.urlencode(
-            {"latlng": f"{R['south']},{R['west']},{R['north']},{R['east']}", "networks": "all", "token": WAQI}), "waqi_bounds.json"))
-        for s in j.get("data", []):
-            pm = usaqi_to_pm(s.get("aqi"))
-            if pm is not None:
-                stations.append({"lat": round(s["lat"], 3), "lon": round(s["lon"], 3), "pm": pm,
-                                 "name": (s.get("station") or {}).get("name", "")[:60]})
-    except Exception as e:
-        log("WAQI bounds skipped:", e)
-    obs = []
-    for i, p in enumerate(places):
+    lats, lons = [p["lat"] for p in places], [p["lon"] for p in places]
+    near_box = f"{min(lats) - 0.4},{min(lons) - 0.4},{max(lats) + 0.4},{max(lons) + 0.4}"
+    found = {}
+
+    def bounds(latlng, network, name):
         try:
-            j = json.loads(get(f"https://api.waqi.info/feed/geo:{p['lat']};{p['lon']}/?token={WAQI}", f"waqi_{p['id']}.json"))
+            j = json.loads(get("https://api.waqi.info/map/bounds?" + urllib.parse.urlencode(
+                {"latlng": latlng, "networks": network, "token": WAQI}), name))
+        except Exception as ex:
+            log("WAQI bounds", network, "skipped:", ex)
+            return
+        n = 0
+        for s in j.get("data") or []:
+            pm = usaqi_to_pm(s.get("aqi"))
+            if pm is None or s.get("lat") is None:
+                continue
+            uid = s.get("uid")
+            kind = "official" if network == "official" else "sensor"
+            if uid in found and found[uid]["type"] == "official":
+                continue
+            st = s.get("station") or {}
+            found[uid] = {"uid": uid, "lat": round(float(s["lat"]), 4), "lon": round(float(s["lon"]), 4), "pm": pm,
+                          "name": (st.get("name") or "")[:60], "time": st.get("time"), "type": kind}
+            n += 1
+        log("WAQI", network, latlng, "->", n)
+
+    bounds(f"{R['south']},{R['west']},{R['north']},{R['east']}", "official", "waqi_bounds_official.json")
+    bounds(near_box, "hyperlocal", "waqi_bounds_hyperlocal.json")
+    allst = list(found.values())
+
+    detail = {}
+
+    def refine(st):
+        """Exact PM2.5 sub-index and time from the station's own feed."""
+        if st["uid"] in detail:
+            return detail[st["uid"]]
+        out = dict(st)
+        try:
+            j = json.loads(get(f"https://api.waqi.info/feed/@{st['uid']}/?token={WAQI}", f"waqi_uid_{st['uid']}.json"))
             d = j.get("data") or {}
             v = ((d.get("iaqi") or {}).get("pm25") or {}).get("v")
-            geo = (d.get("city") or {}).get("geo") or [p["lat"], p["lon"]]
-            km = math.hypot((geo[0] - p["lat"]) * 111, (geo[1] - p["lon"]) * 111 * math.cos(math.radians(p["lat"])))
-            when = (d.get("time") or {}).get("iso")
-            obs.append({"pm": usaqi_to_pm(v), "station": (d.get("city") or {}).get("name", "")[:60], "km": round(km, 1),
-                        "time": when} if v is not None and km < 40 else None)
-        except Exception as e:
-            log("WAQI", p["id"], "skipped:", e)
+            if v is not None:
+                out["pm"] = usaqi_to_pm(v)
+            iso = (d.get("time") or {}).get("iso")
+            if iso:
+                out["time"] = iso
+        except Exception as ex:
+            log("WAQI feed", st["uid"], "skipped:", ex)
+        ts = parse_time(out["time"]) if isinstance(out.get("time"), str) else None
+        out["stale"] = ts is not None and now - ts > 3 * H
+        detail[st["uid"]] = out
+        return out
+
+    obs = []
+    for p in places:
+        offs = sorted(((km_between(p["lat"], p["lon"], s["lat"], s["lon"]), s) for s in allst if s["type"] == "official"), key=lambda x: x[0])
+        sens = sorted(((km_between(p["lat"], p["lon"], s["lat"], s["lon"]), s) for s in allst if s["type"] == "sensor"), key=lambda x: x[0])
+        off = None
+        for km, s in offs[:3]:
+            if km > 25:
+                break
+            r = refine(s)
+            if not r["stale"]:
+                off = (km, r)
+                break
+        pick = off
+        for km, s in sens[:3]:
+            if km > 3:
+                break
+            if off and km >= off[0] / 2:
+                break
+            r = refine(s)
+            if r["stale"]:
+                continue
+            if off and abs(r["pm"] - off[1]["pm"]) > 0.5 * max(off[1]["pm"], 10):
+                continue      # disagrees too much with the official network: likely a faulty or sheltered sensor
+            pick = (km, r)
+            break
+        if pick:
+            km, r = pick
+            obs.append({"pm": r["pm"], "station": r["name"], "km": round(km, 1), "type": r["type"], "uid": r["uid"], "time": r.get("time"),
+                        "anchor": ({"station": off[1]["name"], "pm": off[1]["pm"], "km": round(off[0], 1)} if off and r["type"] == "sensor" else None)})
+        else:
             obs.append(None)
-    log("stations", len(stations), "place readings", sum(o is not None for o in obs))
+    # how many places share each reading
+    for o in obs:
+        if o:
+            o["shared"] = sum(1 for q in obs if q and q["uid"] == o["uid"]) - 1
+    keep = [s for s in allst if s["type"] == "official" or any(km_between(p["lat"], p["lon"], s["lat"], s["lon"]) < 30 for p in places)]
+    stations = [{"lat": s["lat"], "lon": s["lon"], "pm": s["pm"], "name": s["name"], "type": s["type"]} for s in keep]
+    log("stations", len(stations), "place readings", [(o["type"], o["station"], o["km"]) if o else None for o in obs])
     return stations, obs
 
 
@@ -405,7 +483,7 @@ def main():
     fires = load_fires(now)
     G, t0, NT, U, V, P, times = load_grid()
     cams = load_cams(places, times)
-    stations, obs = load_stations(places)
+    stations, obs = load_stations(places, now)
     M = run_model(fires, G, t0, NT, U, V, P, places, now)
     ni, H0, H1, samp = M["now_idx"], M["H0"], M["H1"], M["samp"]
     now_hour = t0 + ni * H
@@ -465,6 +543,21 @@ def main():
                 series[k] = round(float(r["obs_pm"]), 1)
         p["obsHist"] = series
 
+    # best estimate: readings for the past and now, then the forecast shifted by today's station gap,
+    # the shift fading over about 12 hours so later hours fall back to CAMS
+    for p in out_places:
+        cams, o = p["pm"], (p["obs"] or {}).get("pm")
+        gap = (o - cams[24]) if (o is not None and cams[24] is not None) else 0.0
+        est = []
+        for k, v in enumerate(cams):
+            if k < 24:
+                est.append(p["obsHist"][k] if p["obsHist"][k] is not None else v)
+            elif k == 24:
+                est.append(o if o is not None else v)
+            else:
+                est.append(None if v is None else round(max(0.0, v + gap * math.exp(-(k - 24) / 12)), 1))
+        p["est"] = est
+
     latest = {
         "meta": {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat().replace("+00:00", "Z"),
                  "nowISO": datetime.fromtimestamp(now_hour, timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -493,15 +586,16 @@ def notify(latest, now):
     now_hour = datetime.fromisoformat(latest["meta"]["nowISO"].replace("Z", "+00:00")).timestamp()
 
     def summary(p):
-        nowa = my_api(p["pm"][24]) or 0
-        nxt = [(k, p["pm"][k]) for k in range(25, 49) if p["pm"][k] is not None]
-        pk, pv = max(nxt, key=lambda e: e[1]) if nxt else (24, p["pm"][24])
+        s = p.get("est") or p["pm"]
+        nowa = my_api(s[24]) or 0
+        nxt = [(k, s[k]) for k in range(25, 49) if s[k] is not None]
+        pk, pv = max(nxt, key=lambda e: e[1]) if nxt else (24, s[24])
         pa = my_api(pv) or 0
         line = f"{p['name']}: API ~{round(nowa)} ({BAND_NAMES[band(nowa)]}), peak ~{round(pa)} around {fmt_time(now_hour + (pk - 24) * H)}"
         if p["srcs"] and max(p["sc"][25:49]) >= 100:
             line += f"; smoke from {' and '.join(s[0] for s in p['srcs'])}"
         if p.get("obs") and p["obs"].get("pm") is not None:
-            line += f"; station now ~{round(my_api(p['obs']['pm']))}"
+            line += f" ({'local sensor' if p['obs'].get('type') == 'sensor' else 'DOE station'} {p['obs']['km']} km; forecast said {round(my_api(p['pm'][24]))})"
         return line, nowa, pa, pk
 
     today = local.strftime("%Y-%m-%d")
