@@ -13,10 +13,10 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-10-17T08:00:00,mk,72.9,"Batu Muda,Kuala Lumpur, Wilayah Persekutuan, Malaysia",70,33,62,39,
 2026-10-17T08:00:00,bt,72.9,"Batu Muda,Kuala Lumpur, Wilayah Persekutuan, Malaysia",70,33,62,39,
 2026-10-17T08:00:00,ah,74.9,"Cheras,Kuala Lumpur, Wilayah Persekutuan, Malaysia",70,33,62,39,
-2026-10-17T09:00:00,bd,11.5,"Petaling Jaya, Selangor, Malaysia",72,32,27,1,23.8
-2026-10-17T09:00:00,s16,11.5,"Petaling Jaya, Selangor, Malaysia",72,32,27,1,23.8
-2026-10-17T09:00:00,klgcc,11.5,"Petaling Jaya, Selangor, Malaysia",72,32,27,1,23.8
-2026-10-17T09:00:00,saujana,107.8,"Shah Alam, Selangor, Malaysia",72,32,27,1,36.8
-2026-10-17T09:00:00,mk,38.7,"Batu Muda,Kuala Lumpur, Wilayah Persekutuan, Malaysia",72,32,15,1,27.5
-2026-10-17T09:00:00,bt,27.8,Lorong Timur,72,32,11,1,26.0
-2026-10-17T09:00:00,ah,74.9,"Cheras,Kuala Lumpur, Wilayah Persekutuan, Malaysia",72,32,11,1,32.4
+2026-10-17T09:00:00,bd,11.5,"Petaling Jaya, Selangor, Malaysia",72,32,0,9,23.8
+2026-10-17T09:00:00,s16,11.5,"Petaling Jaya, Selangor, Malaysia",72,32,9,9,23.8
+2026-10-17T09:00:00,klgcc,11.5,"Petaling Jaya, Selangor, Malaysia",72,32,0,9,23.8
+2026-10-17T09:00:00,saujana,107.8,"Shah Alam, Selangor, Malaysia",72,32,0,8,36.8
+2026-10-17T09:00:00,mk,38.7,"Batu Muda,Kuala Lumpur, Wilayah Persekutuan, Malaysia",72,32,0,9,27.5
+2026-10-17T09:00:00,bt,28.7,Lorong Timur,72,32,0,10,26.1
+2026-10-17T09:00:00,ah,74.9,"Cheras,Kuala Lumpur, Wilayah Persekutuan, Malaysia",72,32,0,10,32.4
