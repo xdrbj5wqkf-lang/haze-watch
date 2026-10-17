@@ -263,6 +263,43 @@ details.card .ans p{margin:0 0 10px}
 .scale b{border:2px solid var(--edge);border-radius:10px;padding:3px 0;text-align:center;color:#17142a;font-family:var(--fd);font-size:12.5px}
 .faq{display:grid;gap:12px}
 
+/* add / edit places */
+.lbhead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.lbhead .vsub{margin:0}
+.tools{display:flex;gap:8px}
+.sbtn{display:inline-flex;align-items:center;gap:6px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:800;font-size:14px;box-shadow:2px 2px 0 var(--shc)}
+.sbtn.primary{background:var(--accent);color:#fff}
+.sbtn.on{background:var(--ink);color:var(--paper)}
+.sbtn:active{transform:translate(2px,2px);box-shadow:none}
+.chip.add{padding:7px 14px;background:var(--accent);color:#fff;font-size:15px}
+.lb .del{flex:0 0 auto;width:46px;height:46px;border-radius:14px;border:var(--bw) solid var(--edge);background:var(--no);font-size:20px;display:grid;place-items:center}
+.lb.editing{cursor:default}
+.lb.editing:active{transform:none;box-shadow:3px 3px 0 var(--shc)}
+.yours{display:inline-block;font-size:11px;font-weight:800;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:2px}
+.restore{margin-top:14px;display:grid;gap:8px}
+.restore .row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px dashed var(--grid);border-radius:16px;padding:8px 8px 8px 14px;font-weight:700}
+.scrim{position:fixed;inset:0;background:rgba(10,8,20,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;z-index:41;width:min(100%,520px);max-height:88vh;overflow:auto;transform:translate(-50%,105%);transition:transform .35s cubic-bezier(.2,1.1,.3,1);
+  background:var(--paper);border:var(--bw) solid var(--edge);border-bottom:0;border-radius:26px 26px 0 0;padding:10px 18px calc(22px + var(--safe-b));box-shadow:0 -4px 0 var(--accent)}
+.sheet.on{transform:translate(-50%,0)}
+.grab{width:44px;height:5px;border-radius:9px;background:var(--grid);margin:0 auto 10px}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.sh-head h2{margin:0;font-size:21px}
+.search{display:flex;gap:8px}
+.search input,.namebox input{flex:1;min-width:0;font:inherit;font-weight:700;font-size:16px;color:var(--ink);background:var(--card);border:var(--bw) solid var(--edge);border-radius:16px;padding:11px 14px;outline:none}
+.search input:focus,.namebox input:focus{box-shadow:3px 3px 0 var(--accent)}
+.search .btn,.namebox .btn{margin:0}
+.geo{width:100%;justify-content:center;margin:10px 0 4px;background:var(--card);color:var(--ink);box-shadow:3px 3px 0 var(--shc)}
+.results{display:grid;gap:8px;margin-top:10px}
+.res{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;border:var(--bw) solid var(--edge);background:var(--card);border-radius:16px;padding:10px 12px;box-shadow:2px 2px 0 var(--shc)}
+.res b{display:block;font-size:15px}
+.res span{display:block;font-size:12.5px;color:var(--ink2);font-weight:600}
+.namebox{display:grid;gap:10px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:18px;padding:14px;margin-top:10px}
+.namebox label{font-weight:800;font-size:14px}
+.namebox .row{display:flex;gap:8px}
+.msg{font-weight:700;color:var(--ink2);text-align:center;padding:10px}
+.side .tools{margin:0 0 12px}
 .foot{color:var(--ink2);font-size:12px;text-align:center;margin:24px 0 0;line-height:1.6}
 
 /* tab bar */
@@ -319,7 +356,9 @@ details.card .ans p{margin:0 0 10px}
     <div class="brand"><span class="logo" data-logo></span>haze<span>watch</span></div>
     <h2>Cleanest air right now 🏆</h2>
     <p class="sub">Tap a place to see the full picture.</p>
+    <div class="tools"><button type="button" class="sbtn primary" data-add>＋ Add a place</button><button type="button" class="sbtn" data-edit>✏️ Edit</button></div>
     <div class="lbs" id="sideList"></div>
+    <div class="restore" id="sideRestore"></div>
   </aside>
 
   <main class="main">
@@ -336,7 +375,7 @@ details.card .ans p{margin:0 0 10px}
     <section class="view" id="v-map" aria-label="Smoke map">
       <div class="maphead">
         <div><h1 class="vh">Smoke map 🗺️</h1><p class="vsub" style="margin:0">Fires, smoke and wind for the next 3 days</p></div>
-        <div class="seg" role="tablist" aria-label="Map area"><button type="button" data-m="region" class="on" role="tab" aria-selected="true">🌏 Region</button><button type="button" data-m="local" role="tab" aria-selected="false">📍 Our places</button></div>
+        <div class="seg" role="tablist" aria-label="Map area"><button type="button" data-m="region" class="on" role="tab" aria-selected="true">🌏 Region</button><button type="button" data-m="local" role="tab" aria-selected="false">📍 Close-up</button></div>
       </div>
       <div class="mapgrid">
         <div class="card">
@@ -349,9 +388,10 @@ details.card .ans p{margin:0 0 10px}
     </section>
 
     <section class="view" id="v-places" aria-label="Places">
-      <h1 class="vh">Leaderboard 🏆</h1>
-      <p class="vsub">Our places, cleanest air first. Tap one to see it.</p>
+      <div class="lbhead"><div><h1 class="vh">Leaderboard 🏆</h1><p class="vsub">Cleanest air first. Tap one to see it.</p></div>
+        <div class="tools"><button type="button" class="sbtn primary" data-add>＋ Add</button><button type="button" class="sbtn" data-edit>✏️ Edit</button></div></div>
       <div class="lbs" id="placeList"></div>
+      <div class="restore" id="placeRestore"></div>
     </section>
 
     <section class="view" id="v-faq" aria-label="Questions">
@@ -371,6 +411,15 @@ details.card .ans p{margin:0 0 10px}
   <button type="button" data-view="faq" role="tab" aria-selected="false">💬<span>FAQ</span></button>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="addSheet" role="dialog" aria-modal="true" aria-labelledby="addT">
+  <div class="grab"></div>
+  <div class="sh-head"><h2 id="addT">Add a place ✨</h2><button type="button" class="ibtn" data-close aria-label="Close" style="display:grid;place-items:center">✕</button></div>
+  <form class="search" id="addForm"><input id="q" type="search" placeholder="e.g. Bangsar, Sunway Pyramid" autocomplete="off" enterkeyhint="search" aria-label="Search for a place"><button type="submit" class="btn">Search</button></form>
+  <button type="button" class="btn geo" id="geo">📍 Use where I am now</button>
+  <div class="results" id="results"></div>
+  <p class="tiny">Your places are saved on this device only, never on the public website. Added places use the same forecast and nearby stations; the smoke-source breakdown is only for our main places.</p>
+</section>
 
 <script>
 'use strict';
@@ -406,7 +455,7 @@ const bandOf = a => a == null ? 0 : BANDS.findIndex(b => Math.round(a) <= b.max)
 const smokeCat = s => s < 20 ? 0 : s < 100 ? 1 : s < 250 ? 2 : 3;
 const SMOKE = ['No smoke','Light smoke','Some smoke','Heavy smoke'];
 const SHORT = {bd:'B. Damansara', s16:'Section 16', klgcc:'KLGCC', saujana:'Saujana', mk:'Mont Kiara', bt:'Bukit Tunku', ah:'Ampang Hilir'};
-const short = p => SHORT[p.id] || p.name;
+const short = p => SHORT[p.id] || (p.name.length > 14 ? p.name.slice(0, 13) + '…' : p.name);
 
 const TIPS = [
   ['Clean air day! Perfect for tennis 🎾','Open the windows, let the fresh air in 🪟','This is the air we want every day ✨'],
@@ -670,20 +719,43 @@ function swipeHero(){
 
 /* ================= places: chips + leaderboard ================= */
 function renderChips(){
-  $('#chips').innerHTML = D.places.map((p, i) => '<button type="button" class="chip' + (i === SEL ? ' on' : '') + '" data-pick="' + i + '" aria-pressed="' + (i === SEL) + '"><span class="d" style="background:' + BANDS[A[i].nb].c + '">' + Math.round(A[i].nowApi) + '</span>' + esc(p.name) + '</button>').join('');
+  $('#chips').innerHTML = D.places.map((p, i) => '<button type="button" class="chip' + (i === SEL ? ' on' : '') + '" data-pick="' + i + '" aria-pressed="' + (i === SEL) + '"><span class="d" style="background:' + BANDS[A[i].nb].c + '">' + Math.round(A[i].nowApi) + '</span>' + esc(p.name) + '</button>').join('') + '<button type="button" class="chip add" data-add aria-label="Add a place">＋</button>';
   const on = $('#chips .chip.on'); if (on && on.scrollIntoView) on.scrollIntoView({inline:'center', block:'nearest', behavior: REDUCED ? 'auto' : 'smooth'});
 }
+let EDIT = false;
 function lbHTML(){
   const order = D.places.map((p, i) => i).sort((x, y) => A[x].nowApi - A[y].nowApi);
   return order.map((i, r) => { const p = D.places[i], a = A[i], b = BANDS[a.nb];
     const pk = a.peakApi > a.nowApi + 5 ? 'Up to ' + Math.round(a.peakApi) + ' around ' + when(idx(a.peakK)) : 'Steady or easing';
-    return '<button type="button" class="lb' + (i === SEL ? ' sel' : '') + '" data-pick="' + i + '"><span class="rk">' + (r + 1) + '</span><span class="mini">' + puff(a.nb, '') + '</span><span class="tx"><span class="nm">' + esc(p.name) + (r === 0 ? ' <span class="crown">👑</span>' : '') + '</span><span class="ds">' + b.name + ' · ' + esc(pk) + '</span></span><span class="vl" style="background:' + b.c + '">' + Math.round(a.nowApi) + '</span></button>'; }).join('');
+    const tag = p.custom ? '<span class="yours">yours</span>' : '';
+    const end = EDIT ? '<button type="button" class="del" data-del="' + esc(p.id) + '" aria-label="Remove ' + esc(p.name) + '">🗑️</button>' : '<span class="vl" style="background:' + b.c + '">' + Math.round(a.nowApi) + '</span>';
+    return '<div role="button" tabindex="0" class="lb' + (i === SEL && !EDIT ? ' sel' : '') + (EDIT ? ' editing' : '') + '"' + (EDIT ? '' : ' data-pick="' + i + '"') + '><span class="rk">' + (r + 1) + '</span><span class="mini">' + puff(a.nb, '') + '</span><span class="tx"><span class="nm">' + esc(p.name) + tag + (r === 0 && !EDIT ? ' <span class="crown">👑</span>' : '') + '</span><span class="ds">' + (EDIT ? (p.custom ? 'Added on this device' : 'Main place') : b.name + ' · ' + esc(pk)) + '</span></span>' + end + '</div>'; }).join('') +
+    (PEND.length ? PEND.map(c => '<div class="lb editing"><span class="rk">…</span><span class="mini">' + puff(1, '') + '</span><span class="tx"><span class="nm">' + esc(c.name) + '<span class="yours">yours</span></span><span class="ds">' + (c.fail ? 'Couldn’t load. Pull down to retry.' : 'Loading the air here…') + '</span></span>' + (EDIT ? '<button type="button" class="del" data-del="' + esc(c.id) + '" aria-label="Remove ' + esc(c.name) + '">🗑️</button>' : '') + '</div>').join('') : '');
 }
-function renderPlaces(){ const h = lbHTML(); $('#placeList').innerHTML = h; $('#sideList').innerHTML = h; }
+function restoreHTML(){
+  if (!EDIT) return '';
+  const hid = store.get('hw-hidden', []), base = D.base.filter(p => hid.includes(p.id));
+  return base.length ? '<p class="tiny" style="margin:4px 0 0;font-weight:800">Hidden on this device</p>' + base.map(p => '<div class="row">' + esc(p.name) + '<button type="button" class="sbtn" data-unhide="' + esc(p.id) + '">↩︎ Bring back</button></div>').join('') : '';
+}
+function renderPlaces(){
+  const h = lbHTML(), r = restoreHTML(); $('#placeList').innerHTML = h; $('#sideList').innerHTML = h; $('#placeRestore').innerHTML = r; $('#sideRestore').innerHTML = r;
+  $$('[data-edit]').forEach(b => { b.classList.toggle('on', EDIT); b.textContent = EDIT ? '✓ Done' : '✏️ Edit'; });
+}
 
 /* ================= map ================= */
 let PX, PY, K, mapFrame = 0, mapTimer = null, playing = true, smokeFront = 0, mapBuilt = '';
-const LB = {L0:101.555, L1:101.765, B0:3.071, B1:3.197, W:600, Hh:360};
+const mapKey = () => MAPMODE + D.meta.generated + D.places.map(p => p.id).join() + (MAPMODE === 'local' ? '|' + D.places.filter(p => kmB(p, D.places[SEL]) <= 30).map(p => p.id).join() : '');
+let LB = {L0:101.555, L1:101.765, B0:3.071, B1:3.197, W:600, Hh:360}, LNEAR = [];
+const kmB = (a, b) => Math.hypot((a.lat - b.lat)*111.2, (a.lon - b.lon)*111.2*Math.cos(a.lat*Math.PI/180));
+function localBox(){
+  const s = D.places[SEL]; LNEAR = D.places.map((p, i) => i).filter(i => kmB(D.places[i], s) <= 30);
+  const ps = LNEAR.map(i => D.places[i]);
+  let L0 = Math.min(...ps.map(p => p.lon)) - .035, L1 = Math.max(...ps.map(p => p.lon)) + .035, B0 = Math.min(...ps.map(p => p.lat)) - .03, B1 = Math.max(...ps.map(p => p.lat)) + .03;
+  const asp = 600/360; let w = L1 - L0, h = B1 - B0;
+  if (w < .14){ const c = (L0 + L1)/2; L0 = c - .07; L1 = c + .07; w = .14; }
+  if (w/h < asp){ const c = (L0 + L1)/2; w = h*asp; L0 = c - w/2; L1 = c + w/2; } else { const c = (B0 + B1)/2; h = w/asp; B0 = c - h/2; B1 = c + h/2; }
+  LB = {L0, L1, B0, B1, W:600, Hh:360};
+}
 const LX = lon => (lon - LB.L0)/(LB.L1 - LB.L0)*LB.W, LY = lat => (LB.B1 - lat)/(LB.B1 - LB.B0)*LB.Hh;
 function buildRegion(){
   const B = GEO.box; K = B.K; PX = lon => (lon - B.L0) * K; PY = lat => (B.B1 - lat) * K;
@@ -716,15 +788,19 @@ function drawRegion(f){
     w += '<line x1="' + (x - dx/2).toFixed(1) + '" y1="' + (y - dy/2).toFixed(1) + '" x2="' + (x + dx/2).toFixed(1) + '" y2="' + (y + dy/2).toFixed(1) + '" stroke="#9fd8ff" stroke-width="1.6" opacity=".75" marker-end="url(#ah)"/>'; }
   document.getElementById('windG').innerHTML = w;
   $$('.head').forEach(c => { const t = D.tracks[+c.dataset.i], q = t.pts[Math.min(f, t.pts.length - 1)]; c.setAttribute('cx', PX(q[1]).toFixed(1)); c.setAttribute('cy', PY(q[0]).toFixed(1)); });
-  // our places sit within 20 km of each other: one marker, coloured by the selected place
-  const k = 24 + f*3, p = D.places[SEL], cx = PX(D.places.reduce((s, q) => s + q.lon, 0)/D.places.length), cy = PY(D.places.reduce((s, q) => s + q.lat, 0)/D.places.length);
-  document.getElementById('placesG').innerHTML = (REDUCED ? '' : '<circle class="pulse" cx="' + cx + '" cy="' + cy + '" r="9" fill="none" stroke="#fff" stroke-width="2"/>') +
-    '<circle cx="' + cx + '" cy="' + cy + '" r="10" style="fill:' + BANDS[bandOf(api(p.pm[k]))].c + '" stroke="#17142a" stroke-width="3"/><text x="' + (cx + 15) + '" y="' + (cy - 10) + '" font-family="Figtree,system-ui,sans-serif" font-size="17" font-weight="800" fill="#fff" stroke="#12294a" stroke-width="4" paint-order="stroke">Our places</text>';
+  // places within 30 km of each other share one marker (at this scale they would sit on top of each other)
+  const k = 24 + f*3, groups = [];
+  D.places.forEach((p, i) => { const g = groups.find(g => kmB(D.places[g[0]], p) <= 30); if (g) g.push(i); else groups.push([i]); });
+  document.getElementById('placesG').innerHTML = groups.map(g => { const has = g.includes(SEL), p = D.places[has ? SEL : g[0]];
+    const cx = PX(g.reduce((s, i) => s + D.places[i].lon, 0)/g.length), cy = PY(g.reduce((s, i) => s + D.places[i].lat, 0)/g.length);
+    const name = g.length > 1 ? (has ? 'Our places' : short(D.places[g[0]]) + ' +' + (g.length - 1)) : short(p);
+    return (has && !REDUCED ? '<circle class="pulse" cx="' + cx + '" cy="' + cy + '" r="9" fill="none" stroke="#fff" stroke-width="2"/>' : '') +
+      '<g data-pick="' + (has ? SEL : g[0]) + '" style="cursor:pointer"><circle cx="' + cx + '" cy="' + cy + '" r="' + (has ? 10 : 8) + '" style="fill:' + BANDS[bandOf(api(p.pm[k]))].c + '" stroke="#17142a" stroke-width="3"/><text x="' + (cx + 15) + '" y="' + (cy - 10) + '" font-family="Figtree,system-ui,sans-serif" font-size="' + (has ? 17 : 14) + '" font-weight="800" fill="#fff" stroke="#12294a" stroke-width="4" paint-order="stroke">' + esc(name) + '</text></g>'; }).join('');
 }
 let LPOS = null;
 function layoutLocal(){
   // bubble plus its name label is about 120 wide and 90 tall: relax in a squashed space so labels don't collide
-  const R = 66, SY = 1.5, pts = D.places.map(p => ({x:LX(p.lon), y:LY(p.lat), x0:LX(p.lon), y0:LY(p.lat)}));
+  const R = 66, SY = 1.5, pts = LNEAR.map(i => D.places[i]).map(p => ({x:LX(p.lon), y:LY(p.lat), x0:LX(p.lon), y0:LY(p.lat)}));
   for (let it = 0; it < 300; it++){
     for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++){ const a = pts[i], b = pts[j]; let dx = b.x - a.x, dy = (b.y - a.y)*SY; const d = Math.hypot(dx, dy) || 1, min = 2*R;
       if (d < min){ const m = (min - d)/2; dx /= d; dy /= d; a.x -= dx*m; a.y -= dy*m/SY; b.x += dx*m; b.y += dy*m/SY; } }
@@ -732,22 +808,22 @@ function layoutLocal(){
   return pts;
 }
 function buildLocal(){
-  LPOS = layoutLocal();
+  localBox(); LPOS = layoutLocal();
   let s = '<defs><filter id="lblur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter><pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="rgba(255,255,255,.12)"/></pattern></defs>';
   s += '<rect width="' + LB.W + '" height="' + LB.Hh + '" fill="#12294a"/><rect width="' + LB.W + '" height="' + LB.Hh + '" fill="url(#dots)"/>';
-  const kx = LX(D.places.reduce((s, q) => s + q.lon, 0)/D.places.length), ky = LY(D.places.reduce((s, q) => s + q.lat, 0)/D.places.length);
+  const kx = LX((LB.L0 + LB.L1)/2), ky = LY((LB.B0 + LB.B1)/2);
   const ring = 2.5/111/(LB.L1 - LB.L0)*LB.W; [1,2,3,4,5].map(n => n*ring).forEach(r => { s += '<circle cx="' + kx.toFixed(0) + '" cy="' + ky.toFixed(0) + '" r="' + r + '" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>'; });
   s += '<g id="lHaze"></g>';
   s += '<g id="lStations"></g><g id="lPlaces"></g><g id="lWind"></g>';
   s += '<text x="12" y="' + (LB.Hh - 12) + '" font-family="Figtree,system-ui,sans-serif" font-size="13" font-weight="700" fill="rgba(255,255,255,.4)">2.5 km between rings</text>';
-  return '<svg viewBox="0 0 ' + LB.W + ' ' + LB.Hh + '" role="img" aria-label="Map of our places in the Klang Valley with their air quality">' + s + '</svg>';
+  return '<svg viewBox="0 0 ' + LB.W + ' ' + LB.Hh + '" role="img" aria-label="Map of the places near ' + esc(D.places[SEL].name) + ' with their air quality">' + s + '</svg>';
 }
 function drawLocal(f){
-  const k = 24 + f*3, P = D.places;
+  const k = 24 + f*3, P = LNEAR.map(i => D.places[i]);
   document.getElementById('lHaze').innerHTML = P.map((p, i) => { const o = Math.min(.75, (p.sc[k] || 0)/300); return o < .05 ? '' : '<circle cx="' + LPOS[i].x0.toFixed(0) + '" cy="' + LPOS[i].y0.toFixed(0) + '" r="70" fill="#e2cdb8" opacity="' + o.toFixed(2) + '" filter="url(#lblur)"/>'; }).join('');
   document.getElementById('lStations').innerHTML = f === 0 ? (D.stations || []).filter(st => st.lon > LB.L0 && st.lon < LB.L1 && st.lat > LB.B0 && st.lat < LB.B1 && st.pm != null).map(st => { const x = LX(st.lon), y = LY(st.lat), c = BANDS[bandOf(api(st.pm))].c;
     return st.type === 'sensor' ? '<circle cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" r="5" style="fill:' + c + '" stroke="#17142a" stroke-width="2"/>' : '<rect x="' + (x - 7).toFixed(0) + '" y="' + (y - 7).toFixed(0) + '" width="14" height="14" rx="3" style="fill:' + c + '" stroke="#17142a" stroke-width="2.5"/>'; }).join('') : '';
-  document.getElementById('lPlaces').innerHTML = P.map((p, i) => { const q = LPOS[i], v = api(p.pm[k]), c = BANDS[bandOf(v)].c, sel = i === SEL;
+  document.getElementById('lPlaces').innerHTML = P.map((p, j) => { const i = LNEAR[j], q = LPOS[j], v = api(p.pm[k]), c = BANDS[bandOf(v)].c, sel = i === SEL;
     return '<g data-pick="' + i + '" style="cursor:pointer">' + (Math.hypot(q.x - q.x0, q.y - q.y0) > 8 ? '<line x1="' + q.x0.toFixed(0) + '" y1="' + q.y0.toFixed(0) + '" x2="' + q.x.toFixed(0) + '" y2="' + q.y.toFixed(0) + '" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-dasharray="3 3"/>' : '') +
       '<circle cx="' + q.x0.toFixed(0) + '" cy="' + q.y0.toFixed(0) + '" r="4" fill="#fff"/>' + (sel ? '<circle cx="' + q.x.toFixed(0) + '" cy="' + q.y.toFixed(0) + '" r="35" fill="none" stroke="#fff" stroke-width="3"/>' : '') +
       '<circle cx="' + q.x.toFixed(0) + '" cy="' + q.y.toFixed(0) + '" r="27" style="fill:' + c + '" stroke="#17142a" stroke-width="3.5"/><text x="' + q.x.toFixed(0) + '" y="' + (q.y + 8).toFixed(0) + '" text-anchor="middle" font-family="Unbounded,Figtree,system-ui,sans-serif" font-size="21" font-weight="800" fill="#17142a">' + (v == null ? '–' : Math.round(v)) + '</text>' +
@@ -763,12 +839,12 @@ function drawFrame(f){
   const p = D.places[SEL], k = 24 + f*3, v = api(p.pm[k]), b = BANDS[bandOf(v)], wd = p.wd[f] || p.wd[0];
   $('#mapStory').innerHTML = '<h2><span class="em">📍</span>' + esc(p.name) + ' · ' + esc(label) + '</h2><div class="big" style="font-family:var(--fd);font-weight:800;font-size:30px">' + (v == null ? '–' : Math.round(v)) + ' <span class="pill" style="background:' + b.c + ';color:#17142a;font-family:var(--fb);vertical-align:middle">' + b.name + '</span></div>' +
     '<p>💨 ' + SMOKE[smokeCat(p.sc[k] || 0)] + ' overhead</p><p>🌬️ Wind from the ' + CW[compass(wd[0])] + ', ' + Math.round(wd[1]*3.6) + ' km/h</p>' + (p.rn && p.rn[k] >= 1 ? '<p>🌧️ Rain about now</p>' : '') +
-    '<p class="tiny">' + (MAPMODE === 'region' ? 'Orange dots are fires. Beige clouds are the smoke we track. Blue arrows are the wind. Press play to watch 3 days.' : 'Each bubble is one of our places and its API at that time. Squares are DOE stations, dots are local sensors (shown for now only).') + '</p>';
+    '<p class="tiny">' + (MAPMODE === 'region' ? 'Orange dots are fires. Beige clouds are the smoke we track. Blue arrows are the wind. Press play to watch 3 days.' : 'Each bubble is a place and its API at that time. Squares are DOE stations, dots are local sensors (shown for now only).') + '</p>';
 }
 function buildMap(){
   if (!D || !GEO) return;
   $('#mapbox').innerHTML = MAPMODE === 'region' ? buildRegion() : buildLocal();
-  smokeFront = 0; mapBuilt = MAPMODE + D.meta.generated;
+  smokeFront = 0; mapBuilt = mapKey();
   $('#mapLegend').innerHTML = MAPMODE === 'region' ? '<span><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#ff6a3d"/></svg>Fire (24h)</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#ffb878" opacity=".5"/></svg>Fire (older)</span><span><svg width="16" height="12"><rect width="16" height="12" rx="3" fill="#e2cdb8"/></svg>Smoke</span><span><svg width="18" height="10"><path d="M1 5h12" stroke="#5aa9e6" stroke-width="2"/><path d="M12 1l5 4-5 4z" fill="#5aa9e6"/></svg>Wind</span>'
     : '<span><svg width="14" height="14"><rect x="1" y="1" width="12" height="12" rx="3" style="fill:var(--b1)" stroke="#17142a" stroke-width="2"/></svg>DOE station</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="4.5" style="fill:var(--b1)" stroke="#17142a" stroke-width="2"/></svg>Local sensor</span><span><svg width="16" height="12"><rect width="16" height="12" rx="6" fill="#e2cdb8"/></svg>Smoke</span>';
   drawFrame(mapFrame);
@@ -790,6 +866,7 @@ function faqHTML(){
     q('Why is it different from the APIMS app?', '<p>Three reasons. We show the latest <b>hourly</b> reading, so we react faster; DOE averages over 24 hours, so their number lags behind. When we have enough readings we show the 24-hour average too (📊).</p><p>We sometimes use a <b>local sensor</b> right next to the place, if it agrees with the official station. And with no station nearby we use the forecast.</p><p>For the official number, check <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>') +
     q('How do you predict the haze?', '<p>Every hour a robot (well, a script 🤖) does four things:</p><p>1. Grabs every fire NASA’s satellites spotted in the last two days.<br>2. Gets the wind and rain forecast.<br>3. Pushes pretend smoke from each fire along the wind, to see where it ends up.<br>4. Starts from the real reading near each place and blends into Copernicus’s air forecast.</p><p>The smoke tracking is rough, so trust it for direction and timing more than exact numbers.</p>') +
     q('How does “Can I…?” decide?', '<p>Hard exercise (sport, running, golf) gets ✅ up to API 50 and ⚠️ up to 100. Hanging out or walking gets ✅ up to 100 and ⚠️ up to 200. Windows open up to 50.</p><p>We look at the worst hour in the time you’d be out, and suggest the cleanest slot from 6am to 8pm today or tomorrow. If you have asthma or a cough, be one step more careful.</p>') +
+    q('Can I add my own places?', '<p>Yes. Tap <b>＋</b> next to the places at the top, or <b>＋ Add</b> on the Places tab. Search for somewhere or use where you are now, then give it a name.</p><p>To remove one, tap <b>✏️ Edit</b> on the Places tab, then 🗑️. Removing one of the main places only hides it on your device, and you can bring it back from the same screen.</p><p>Places you add stay on your device, not on the website. They get the same forecast and nearby station readings, but not the smoke-source breakdown or the 24-hour reading history.</p>') +
     q('Do masks help?', '<p>Normal cloth or surgical masks don’t stop haze very well. An <b>N95</b> or <b>KF94</b> that fits snugly does. Indoors, keep windows shut and run an air purifier.</p>') +
     q('Where does the data come from?', '<p>Fires: NASA FIRMS (VIIRS satellites). Wind, rain and PM2.5 forecast: Open-Meteo with Copernicus CAMS data (CC BY 4.0). Live readings: DOE stations and local sensors via WAQI. Map: Natural Earth.</p><p>WAQI publishes US-style AQI, which we convert back to PM2.5 before applying the Malaysian table. That conversion is our best understanding of how WAQI works, so treat small differences with a pinch of salt.</p>') +
     q('Is this official?', '<p>No. Haze Watch is a family project and a rough guide. It isn’t a health service. If you feel unwell, tell an adult or see a doctor.</p>');
@@ -808,7 +885,7 @@ function renderMeta(){
 }
 function renderAll(anim){
   setBand(A[SEL].nb); renderChips(); renderPlaces(); renderNow(anim); renderMeta();
-  if (VIEW === 'map'){ if (mapBuilt !== MAPMODE + D.meta.generated) buildMap(); else drawFrame(mapFrame); }
+  if (VIEW === 'map'){ if (mapBuilt !== mapKey()) buildMap(); else drawFrame(mapFrame); }
 }
 function select(i, anim){
   if (!D) return; SEL = (i + D.places.length) % D.places.length;
@@ -817,22 +894,151 @@ function select(i, anim){
 }
 function render(){
   D.places.forEach(p => { if (!p.cams){ p.cams = p.pm; if (p.est) p.pm = p.est; } });
-  NOW = Date.parse(D.meta.nowISO); A = D.places.map(analyse);
-  try { const id = localStorage.getItem('hw-place'), i = D.places.findIndex(p => p.id === id); if (i >= 0) SEL = i; } catch (e) {}
-  if (SEL >= D.places.length) SEL = 0;
-  mapBuilt = ''; renderAll(0);
+  D.base = D.places; NOW = Date.parse(D.meta.nowISO);
+  const saved = store.get('hw-custom', []), cache = store.get('hw-cdata', null);
+  CUSTOM = cache && cache.now === D.meta.nowISO && cache.gen === D.meta.generated ? (cache.places || []).filter(c => saved.some(x => x.id === c.id)) : [];
+  PEND = saved.filter(x => !CUSTOM.some(c => c.id === x.id));
+  assemble(); mapBuilt = ''; renderAll(0);
+  if (PEND.length) loadCustom(PEND.slice());
 }
+
+/* ================= your own places (kept on this device only) ================= */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+let CUSTOM = [], PEND = [], FOUND = [], PICK = null;
+const MAX_CUSTOM = 8;
+const inRegion = x => x.lat >= -7 && x.lat <= 9 && x.lon >= 94 && x.lon <= 121;
+const savedSel = () => { try { return localStorage.getItem('hw-place'); } catch (e) { return null; } };
+function assemble(){
+  const hid = store.get('hw-hidden', []);
+  D.places = D.base.filter(p => !hid.includes(p.id)).concat(CUSTOM);
+  if (!D.places.length){ store.set('hw-hidden', []); D.places = D.base.concat(CUSTOM); }
+  A = D.places.map(analyse);
+  const i = D.places.findIndex(p => p.id === savedSel()); SEL = i >= 0 ? i : 0;
+}
+// the nearest fresh reading, by the same rules as the hourly job
+function nearestObs(c){
+  const now = Date.now(), fresh = x => { const t = Date.parse(x.t); return isNaN(t) || now - t < 3*H; };
+  const st = (D.stations || []).filter(x => x.pm != null && fresh(x)).map(x => ({x, km:kmB(c, x)})).sort((a, b) => a.km - b.km);
+  const off = st.find(o => o.x.type === 'official' && o.km <= 25);
+  const sen = st.find(o => o.x.type === 'sensor' && o.km <= 3 && (!off || (o.km < off.km/2 && Math.abs(o.x.pm - off.x.pm) <= .5*Math.max(off.x.pm, 10))));
+  const pk = sen || off; if (!pk) return null;
+  return {pm:pk.x.pm, station:pk.x.name, km:Math.round(pk.km*10)/10, type:pk.x.type, shared:0, anchor: sen && off ? {station:off.x.name, pm:off.x.pm, km:Math.round(off.km*10)/10} : null};
+}
+// smoke score from the published smoke frames (1-degree cells every 3 hours), scaled to the hourly job's 50 km score
+function smokeAt(c){
+  const G = D.meta.grid, i = Math.round(c.lat - G.lat0), j = Math.round(c.lon - G.lon0), inG = i >= 0 && j >= 0 && i < G.nlat && j < G.nlon;
+  const fr = (D.smoke || []).map(f => { const q = inG ? +f[i*G.nlon + j] || 0 : 0; return q ? .64*10*Math.pow(2.2, q - .5) : 0; });
+  const sc = []; for (let k = 0; k < 97; k++){ if (k < 24 || !fr.length){ sc.push(0); continue; } const x = (k - 24)/3, a = Math.min(fr.length - 1, Math.floor(x)), b = Math.min(fr.length - 1, a + 1), t = x - Math.floor(x); sc.push(Math.round(fr[a]*(1 - t) + fr[b]*t)); }
+  return sc;
+}
+async function buildCustom(list){
+  const la = list.map(c => c.lat.toFixed(4)).join(','), lo = list.map(c => c.lon.toFixed(4)).join(',');
+  const get = u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  const [aq, wx] = await Promise.all([
+    get('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + la + '&longitude=' + lo + '&hourly=pm2_5&past_days=2&forecast_days=4&timezone=GMT&domains=cams_global'),
+    get('https://api.open-meteo.com/v1/forecast?latitude=' + la + '&longitude=' + lo + '&hourly=wind_speed_850hPa,wind_direction_850hPa,precipitation&wind_speed_unit=ms&past_days=2&forecast_days=4&timezone=GMT')]);
+  const AQ = [].concat(aq), WX = [].concat(wx), nowT = D.meta.nowISO.slice(0, 16);
+  return list.map((c, n) => {
+    const ah = AQ[n].hourly, wh = WX[n].hourly, a0 = ah.time.indexOf(nowT) - 24, w0 = wh.time.indexOf(nowT) - 24;
+    if (a0 < 0 || w0 < 0) throw new Error('forecast does not cover now');
+    const cams = [], rn = [], wd = [];
+    for (let k = 0; k < 97; k++){ const v = ah.pm2_5[a0 + k]; cams.push(v == null ? null : Math.round(v)); const r = wh.precipitation[w0 + k]; rn.push(r == null ? 0 : Math.round(r*10)/10); }
+    for (let f = 0; f <= 24; f++){ const h = w0 + 24 + 3*f, d = wh.wind_direction_850hPa[h], sp = wh.wind_speed_850hPa[h]; wd.push(d == null || sp == null ? (wd[f - 1] || [200, 3]) : [Math.round(d), Math.round(sp*10)/10]); }
+    const obs = nearestObs(c), o = obs ? obs.pm : null, gap = o != null && cams[24] != null ? o - cams[24] : 0;
+    const est = cams.map((v, k) => k < 24 ? v : k === 24 ? (o != null ? o : v) : v == null ? null : Math.round(Math.max(0, v + gap*Math.exp(-(k - 24)/12))*10)/10);
+    const obsHist = Array(25).fill(null); if (o != null) obsHist[24] = o;
+    return {id:c.id, name:c.name, lat:c.lat, lon:c.lon, custom:true, cams, pm:est, sc:smokeAt(c), rn, wd, srcs:[], obs, obsHist};
+  });
+}
+async function loadCustom(list){
+  const gen = D.meta.generated;
+  try {
+    const built = await buildCustom(list);
+    if (D.meta.generated !== gen) return false;          // data refreshed meanwhile; render() starts again
+    const ids = store.get('hw-custom', []).map(x => x.id);
+    CUSTOM = CUSTOM.filter(c => !built.some(b => b.id === c.id)).concat(built.filter(b => ids.includes(b.id)));
+    CUSTOM.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    store.set('hw-cdata', {now:D.meta.nowISO, gen, places:CUSTOM});
+    PEND = PEND.filter(x => !list.some(l => l.id === x.id));
+    assemble(); mapBuilt = ''; renderAll(0); return true;
+  } catch (e) {
+    PEND.forEach(x => { if (list.some(l => l.id === x.id)) x.fail = true; });
+    renderPlaces(); toast('Couldn’t load ' + (list.length === 1 ? list[0].name : 'your added places') + '. Pull down to retry.'); return false;
+  }
+}
+function openAdd(){
+  if (store.get('hw-custom', []).length >= MAX_CUSTOM){ toast('Max ' + MAX_CUSTOM + ' added places. Remove one first.'); return; }
+  $('#results').innerHTML = ''; $('#q').value = ''; FOUND = []; PICK = null;
+  $('#scrim').classList.add('on'); $('#addSheet').classList.add('on');
+}
+function closeAdd(){ $('#scrim').classList.remove('on'); $('#addSheet').classList.remove('on'); if (document.activeElement) document.activeElement.blur(); }
+async function searchPlaces(q){
+  if (!q.trim()) return;
+  $('#results').innerHTML = '<div class="msg">Looking… 🔎</div>';
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=en&countrycodes=my,sg,bn,id,th&viewbox=100.9,3.9,102.3,2.4&q=' + encodeURIComponent(q)).then(r => r.json());
+    FOUND = r.map(x => { const parts = (x.display_name || '').split(','); return {name:(x.name || parts[0] || 'Place').trim(), sub:parts.slice(1, 4).join(',').trim(), lat:+x.lat, lon:+x.lon}; }).filter(inRegion);
+    $('#results').innerHTML = FOUND.length ? FOUND.map((x, i) => '<button type="button" class="res" data-found="' + i + '"><span>📍</span><span><b>' + esc(x.name) + '</b><span>' + esc(x.sub) + '</span></span></button>').join('')
+      : '<div class="msg">Nothing found around here. Try another spelling or a landmark nearby.</div>';
+  } catch (e) { $('#results').innerHTML = '<div class="msg">Search isn’t working right now. Check your connection.</div>'; }
+}
+function confirmPlace(x){
+  PICK = x;
+  $('#results').innerHTML = '<div class="namebox"><label for="nm">What should we call it?</label><div class="row"><input id="nm" maxlength="28" value="' + esc(x.name) + '" enterkeyhint="done"><button type="button" class="btn" id="addGo">Add ✨</button></div><span class="tiny" style="margin:0">' + esc(x.sub || '') + '</span></div>';
+}
+async function addPlace(){
+  if (!PICK) return;
+  const name = (($('#nm') || {}).value || PICK.name).trim().slice(0, 28) || 'My place';
+  const c = {id:'u' + Date.now().toString(36), name, lat:Math.round(PICK.lat*1e4)/1e4, lon:Math.round(PICK.lon*1e4)/1e4};
+  const saved = store.get('hw-custom', []); saved.push(c); store.set('hw-custom', saved);
+  closeAdd(); PEND.push(c); renderPlaces(); toast('Adding ' + name + '…');
+  if (await loadCustom([c])){ const i = D.places.findIndex(p => p.id === c.id); if (i >= 0){ select(i, 0); setView('now'); toast(name + ' added ✨'); } }
+}
+function removePlace(id){
+  const saved = store.get('hw-custom', []), p = D.places.find(q => q.id === id) || saved.find(q => q.id === id) || {};
+  if (D.places.length <= 1 && D.places[0].id === id){ toast('Keep at least one place 🙂'); return; }
+  if (saved.some(x => x.id === id)){ store.set('hw-custom', saved.filter(x => x.id !== id)); CUSTOM = CUSTOM.filter(c => c.id !== id); PEND = PEND.filter(c => c.id !== id); }
+  else { const hid = store.get('hw-hidden', []); if (!hid.includes(id)) hid.push(id); store.set('hw-hidden', hid); }
+  const cur = D.places[SEL] && D.places[SEL].id; assemble();
+  const i = D.places.findIndex(q => q.id === cur); SEL = i >= 0 ? i : 0;
+  try { localStorage.setItem('hw-place', D.places[SEL].id); } catch (e) {}
+  mapBuilt = ''; renderAll(0); toast((p.name || 'Place') + ' removed');
+}
+function unhide(id){ store.set('hw-hidden', store.get('hw-hidden', []).filter(x => x !== id)); assemble(); mapBuilt = ''; renderAll(0); }
+$('#addForm').addEventListener('submit', e => { e.preventDefault(); searchPlaces($('#q').value); });
+$('#results').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'nm'){ e.preventDefault(); addPlace(); } });
+$('#geo').addEventListener('click', () => {
+  if (!navigator.geolocation){ $('#results').innerHTML = '<div class="msg">This device can’t share its location. Search instead.</div>'; return; }
+  $('#results').innerHTML = '<div class="msg">Finding you… your phone will ask first 📍</div>';
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const x = {lat:pos.coords.latitude, lon:pos.coords.longitude, name:'My spot', sub:''};
+    if (!inRegion(x)){ $('#results').innerHTML = '<div class="msg">Haze Watch only covers Malaysia and the countries around it.</div>'; return; }
+    try { const r = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&accept-language=en&lat=' + x.lat.toFixed(3) + '&lon=' + x.lon.toFixed(3)).then(r => r.json()), ad = r.address || {};
+      x.name = ad.suburb || ad.neighbourhood || ad.quarter || ad.village || ad.town || ad.city || 'My spot'; x.sub = (r.display_name || '').split(',').slice(1, 3).join(',').trim(); } catch (e) {}
+    confirmPlace(x);
+  }, () => { $('#results').innerHTML = '<div class="msg">Location is switched off for this app. Search for the place instead.</div>'; }, {timeout:12000, maximumAge:600000});
+});
 function setView(v){
   VIEW = v;
   $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
   $$('.tabbar button').forEach(b => { const on = b.dataset.view === v; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   scrollTo({top:0, behavior:'auto'});
-  if (v === 'map' && D){ if (mapBuilt !== MAPMODE + D.meta.generated) buildMap(); setPlay(!REDUCED); } else setPlay(false);
+  if (v === 'map' && D){ if (mapBuilt !== mapKey()) buildMap(); setPlay(!REDUCED); } else setPlay(false);
   if (v === 'now' && D) drawCompare();
 }
 
 /* ================= events ================= */
 document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.closest('[data-add]')){ openAdd(); return; }
+  if (t.closest('[data-close]') || t.id === 'scrim'){ closeAdd(); return; }
+  if (t.closest('#addGo')){ addPlace(); return; }
+  const fd = t.closest('[data-found]'); if (fd){ confirmPlace(FOUND[+fd.dataset.found]); return; }
+  if (t.closest('[data-edit]')){ EDIT = !EDIT; renderPlaces(); return; }
+  const del = t.closest('[data-del]'); if (del){ removePlace(del.dataset.del); return; }
+  const un = t.closest('[data-unhide]'); if (un){ unhide(un.dataset.unhide); return; }
   const pick = e.target.closest('[data-pick]'); if (pick){ select(+pick.dataset.pick, 0); if (VIEW === 'places') setView('now'); return; }
   const go = e.target.closest('[data-go]'); if (go){ setView(go.dataset.go); return; }
   const tab = e.target.closest('.tabbar button'); if (tab){ setView(tab.dataset.view); return; }
@@ -842,12 +1048,13 @@ $('#play').addEventListener('click', () => { if (!playing && mapFrame >= 24) dra
 $('#t').addEventListener('input', e => { setPlay(false); drawFrame(+e.target.value); });
 $('#upd').addEventListener('click', () => load(true));
 let rsT = 0; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (D && VIEW === 'now') drawCompare(); }, 150); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdd(); if (e.key === 'Enter' && e.target.matches('.lb[data-pick]')) e.target.click(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && D && Date.now() - Date.parse(D.meta.generated) > 50*60e3) load(true); });
 
 // pull down to refresh (the Home Screen app has no browser refresh)
 (function(){ const ptr = $('#ptr'); let y0 = null, dy = 0;
   ptr.innerHTML = puff(1, '');
-  addEventListener('touchstart', e => { y0 = scrollY <= 0 && !e.target.closest('.cmp,.mapbox,input,.bars,.chips') ? e.touches[0].clientY : null; dy = 0; }, {passive:true});
+  addEventListener('touchstart', e => { y0 = scrollY <= 0 && !e.target.closest('.cmp,.mapbox,input,.bars,.chips,.sheet') ? e.touches[0].clientY : null; dy = 0; }, {passive:true});
   addEventListener('touchmove', e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0);
     if (dy > 10){ ptr.classList.add('show'); ptr.style.transform = 'translateY(' + Math.min(90, dy*.5) + 'px) rotate(' + dy*1.5 + 'deg)'; } }, {passive:true});
   addEventListener('touchend', () => { if (y0 == null) return; y0 = null;

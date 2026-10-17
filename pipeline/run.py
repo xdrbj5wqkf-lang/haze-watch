@@ -296,7 +296,8 @@ def load_stations(places, now):
         if o:
             o["shared"] = sum(1 for q in obs if q and q["uid"] == o["uid"]) - 1
     keep = [s for s in allst if s["type"] == "official" or any(km_between(p["lat"], p["lon"], s["lat"], s["lon"]) < 30 for p in places)]
-    stations = [{"lat": s["lat"], "lon": s["lon"], "pm": s["pm"], "name": s["name"], "type": s["type"]} for s in keep]
+    # "t" lets the app skip stale readings when it works out a place the user added on their own device
+    stations = [{"lat": s["lat"], "lon": s["lon"], "pm": s["pm"], "name": s["name"], "type": s["type"], "t": s.get("time")} for s in keep]
     log("stations", len(stations), "place readings", [(o["type"], o["station"], o["km"]) if o else None for o in obs])
     return stations, obs
 
