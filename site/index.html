@@ -476,7 +476,7 @@ function adjusted(p){
 function drawCompare(){
   const host = document.getElementById('cmp'); if (!host) return;
   const p = D.places[SEL], a = A[SEL];
-  const W = Math.max(300, Math.round(host.clientWidth || 340)), Hh = innerWidth >= 900 ? 230 : 200, L = 4, R = W - 34, T = 12, B = Hh - 24;
+  const W = Math.max(300, Math.round(host.clientWidth || 340)), Hh = innerWidth >= 900 ? 230 : 200, L = 18, R = W - 34, T = 12, B = Hh - 24;
   const f = p.pm.slice(0, 49).map(v => v == null ? null : api(v));
   const ob = (p.obsHist || []).map(v => v == null ? null : api(v));
   if (a.obsApi != null) ob[24] = a.obsApi;
@@ -488,7 +488,7 @@ function drawCompare(){
   const edges = [0,50,100,200,300,500];
   for (let b = 0; b < 5; b++){ const lo = edges[b], hi = Math.min(edges[b+1], ymax); if (lo >= ymax) break;
     s += '<rect x="' + L + '" y="' + Y(hi).toFixed(1) + '" width="' + (R-L) + '" height="' + (Y(lo)-Y(hi)).toFixed(1) + '" fill="' + BANDS[b].c + '" opacity=".1"/>'; }
-  [50,100,200,300].filter(v => v < ymax).forEach(v => { s += '<line x1="' + L + '" x2="' + R + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="rgba(255,255,255,.16)" stroke-dasharray="2 4"/><text x="' + (R + 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="rgba(255,255,255,.55)">' + v + '</text>'; });
+  [50,100,150,200,300].filter(v => v < ymax).forEach(v => { s += '<line x1="' + L + '" x2="' + R + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="rgba(255,255,255,.16)" stroke-dasharray="2 4"/><text x="' + (R + 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="rgba(255,255,255,.55)">' + v + '</text>'; });
   s += '<rect x="' + X(24).toFixed(1) + '" y="' + T + '" width="' + (R - X(24)).toFixed(1) + '" height="' + (B - T) + '" fill="rgba(255,255,255,.05)"/>';
   for (let k = 0; k <= 48; k += 6){ const lab = k === 24 ? 'Now' : hh(idx(k)); s += '<text x="' + X(k).toFixed(1) + '" y="' + (Hh - 6) + '" text-anchor="middle" font-size="11" font-weight="' + (k === 24 ? 700 : 500) + '" fill="rgba(255,255,255,' + (k === 24 ? .95 : .55) + ')">' + lab + '</text>'; }
   s += '<line x1="' + X(24).toFixed(1) + '" x2="' + X(24).toFixed(1) + '" y1="' + T + '" y2="' + B + '" stroke="rgba(255,255,255,.55)" stroke-width="1"/>';
