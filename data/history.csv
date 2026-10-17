@@ -1,7 +1,8 @@
 hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24
-2026-10-17T04:00:00,kl,103.9,Kuala Lumpur,50,32,0,267
-2026-10-17T04:00:00,pj,92.3,"Putrajaya, W.p. Putrajaya, Malaysia",53,26,3,978
-2026-10-17T04:00:00,sa,105.9,"Shah Alam, Selangor, Malaysia",50,32,11,1078
-2026-10-17T04:00:00,pg,24.9,"Minden, Pulau Pinang, Malaysia",21,10,0,0
-2026-10-17T04:00:00,jb,146.5,"Larkin Lama, Johor, Malaysia",70,44,315,15
-2026-10-17T04:00:00,ku,44.4,"Kuching, Sarawak, Malaysia",16,18,2,249
+2026-10-17T04:00:00,bd,103.9,Kuala Lumpur,50,32,0,276
+2026-10-17T04:00:00,s16,94.2,"Petaling Jaya, Selangor, Malaysia",50,32,0,270
+2026-10-17T04:00:00,klgcc,94.2,"Petaling Jaya, Selangor, Malaysia",50,32,0,277
+2026-10-17T04:00:00,saujana,105.9,"Shah Alam, Selangor, Malaysia",50,32,11,1053
+2026-10-17T04:00:00,mk,103.9,Kuala Lumpur,50,32,0,277
+2026-10-17T04:00:00,bt,103.9,Kuala Lumpur,50,32,0,277
+2026-10-17T04:00:00,ah,103.9,Kuala Lumpur,50,32,0,238
