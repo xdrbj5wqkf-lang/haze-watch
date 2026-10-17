@@ -10,40 +10,46 @@
   },
   "places": [
     {
-      "id": "kl",
-      "name": "Kuala Lumpur",
-      "lat": 3.139,
-      "lon": 101.687
+      "id": "bd",
+      "name": "Bukit Damansara",
+      "lat": 3.149,
+      "lon": 101.653
     },
     {
-      "id": "pj",
-      "name": "Putrajaya",
-      "lat": 2.926,
-      "lon": 101.696
+      "id": "s16",
+      "name": "Section 16, PJ",
+      "lat": 3.124,
+      "lon": 101.644
     },
     {
-      "id": "sa",
-      "name": "Shah Alam",
-      "lat": 3.073,
-      "lon": 101.519
+      "id": "klgcc",
+      "name": "KLGCC",
+      "lat": 3.14,
+      "lon": 101.641
     },
     {
-      "id": "pg",
-      "name": "George Town",
-      "lat": 5.414,
-      "lon": 100.329
+      "id": "saujana",
+      "name": "Saujana G&CC",
+      "lat": 3.106,
+      "lon": 101.575
     },
     {
-      "id": "jb",
-      "name": "Johor Bahru",
-      "lat": 1.493,
-      "lon": 103.741
+      "id": "mk",
+      "name": "Mont Kiara",
+      "lat": 3.168,
+      "lon": 101.651
     },
     {
-      "id": "ku",
-      "name": "Kuching",
-      "lat": 1.553,
-      "lon": 110.359
+      "id": "bt",
+      "name": "Bukit Tunku",
+      "lat": 3.167,
+      "lon": 101.683
+    },
+    {
+      "id": "ah",
+      "name": "Ampang Hilir",
+      "lat": 3.158,
+      "lon": 101.738
     }
   ],
   "alerts": {
