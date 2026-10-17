@@ -219,16 +219,20 @@ def load_stations(places, now):
             return
         n = 0
         for s in j.get("data") or []:
-            pm = usaqi_to_pm(s.get("aqi"))
-            if pm is None or s.get("lat") is None:
-                continue
             uid = s.get("uid")
             kind = "official" if network == "official" else "sensor"
+            st0 = s.get("station") or {}
+            # WAQI republishes DOE's own API (as shown on APIMS) as the overall index of Malaysian DOE stations;
+            # everything else is on the US AQI scale
+            doe = kind == "official" and is_doe(st0.get("name"))
+            pm = api_to_pm(s.get("aqi")) if doe else usaqi_to_pm(s.get("aqi"))
+            if pm is None or s.get("lat") is None:
+                continue
             if uid in found and found[uid]["type"] == "official":
                 continue
             st = s.get("station") or {}
             found[uid] = {"uid": uid, "lat": round(float(s["lat"]), 4), "lon": round(float(s["lon"]), 4), "pm": pm,
-                          "name": (st.get("name") or "")[:60], "time": st.get("time"), "type": kind}
+                          "name": (st.get("name") or "")[:60], "time": st.get("time"), "type": kind, "doe": doe}
             n += 1
         log("WAQI", network, latlng, "->", n)
 
@@ -247,9 +251,14 @@ def load_stations(places, now):
         try:
             j = json.loads(get(f"https://api.waqi.info/feed/@{st['uid']}/?token={WAQI}", f"waqi_uid_{st['uid']}.json"))
             d = j.get("data") or {}
-            v = ((d.get("iaqi") or {}).get("pm25") or {}).get("v")
-            if v is not None:
-                out["pm"] = usaqi_to_pm(v)
+            if st.get("doe"):
+                # the official API itself (matches APIMS); its PM2.5 sub-index is not on the DOE scale
+                if api_to_pm(d.get("aqi")) is not None:
+                    out["pm"] = api_to_pm(d.get("aqi"))
+            else:
+                v = ((d.get("iaqi") or {}).get("pm25") or {}).get("v")
+                if v is not None:
+                    out["pm"] = usaqi_to_pm(v)
             iso = (d.get("time") or {}).get("iso")
             if iso:
                 out["time"] = iso
@@ -457,6 +466,24 @@ def my_api(pm):
     return y1 + (pm - x1) * (y1 - y0) / (x1 - x0)
 
 
+def api_to_pm(a):
+    """Malaysian API back to a PM2.5-equivalent (ug/m3) on DOE's table, so it sits on the same scale as CAMS."""
+    try:
+        a = float(a)
+    except (TypeError, ValueError):
+        return None
+    a = max(0.0, a)
+    for (x0, y0), (x1, y1) in zip(API_PM25, API_PM25[1:]):
+        if a <= y1:
+            return round(x0 + (a - y0) * (x1 - x0) / (y1 - y0), 1)
+    (x0, y0), (x1, y1) = API_PM25[-2], API_PM25[-1]
+    return round(x1 + (a - y1) * (x1 - x0) / (y1 - y0), 1)
+
+
+def is_doe(name):
+    return "malaysia" in (name or "").lower()
+
+
 BAND_NAMES = ["good", "moderate", "unhealthy", "very unhealthy", "hazardous"]
 
 
@@ -635,7 +662,7 @@ def main():
             elif k == 24:
                 est.append(o if o is not None else v)
             else:
-                est.append(None if v is None else round(max(0.0, v + gap * math.exp(-(k - 24) / 12)), 1))
+                est.append(None if v is None else round(max(0.0, v + gap * math.exp(-(k - 24) / 24)), 1))
         p["est"] = est
 
     # record our own 24-hour-ahead estimate so the forecast check can score it

@@ -34,7 +34,7 @@ The `data/history.csv` file keeps 90 days of readings and forecasts. The app's *
 ## Things to know
 
 - PM2.5 is converted to the Malaysian API with DOE's own breakpoints (12, 75.5, 150.4, 250.4, 350.4 and 500.4 µg/m³ for API 50 to 500; DOE "API Calculation" guidance). DOE applies them to a 24-hour average; the app applies them to the latest hourly reading, so it reacts faster than APIMS. The app also shows the 24-hour average once a day of readings has built up.
-- WAQI publishes US AQI rather than concentrations; the job converts back using the US EPA pre-2024 table, which WAQI has historically used. Check this too.
+- For Malaysian DOE stations, WAQI republishes DOE's official API (it matches APIMS), and the job uses it directly. Other stations and local sensors are on the US AQI scale and are converted with the US EPA pre-2024 table (ASSUMPTION-VERIFY).
 - The smoke tracking is uncalibrated. Read it for direction and timing until the forecast check has a few weeks of data.
 - GitHub pauses scheduled jobs on repositories with no activity for 60 days. The hourly history commits should count as activity; if it ever stops, press **Run workflow** once.
 - Indicative only. For official readings use APIMS: https://eqms.doe.gov.my/APIMS/main

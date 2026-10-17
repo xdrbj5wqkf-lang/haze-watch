@@ -546,13 +546,12 @@ function bestWin(p, x){
 /* ================= now view ================= */
 function heroHTML(p, a){
   const b = BANDS[a.nb], tr = trend(p, a);
-  const avg = a.avg24 != null ? '<span class="mchip">📊 24h average ' + Math.round(a.avg24) + '</span>' : '';
   return '<article class="card hero span2" id="hero" style="--hc:' + b.c + '">' +
     '<div class="hero-top"><div><div class="hplace">' + esc(p.name) + '</div><div class="hwhen">Air right now · ' + hh(NOW) + '</div></div><button type="button" class="ibtn" data-go="places" aria-label="Switch place">⇄</button></div>' +
     '<div class="hero-mid"><button type="button" class="puffbtn" id="puffBtn" aria-label="Tap Puff for a tip">' + puff(a.nb, 'big') + '<span class="bubble" id="bubble"></span></button>' +
     '<div class="hnum"><div class="num' + (Math.round(a.nowApi) >= 100 ? ' n3' : '') + '" id="heroNum">' + Math.round(a.nowApi) + '</div><div class="unit">API</div><span class="sticker">' + b.name + '</span></div></div>' +
     '<p class="tag">' + b.tag + '</p>' + (tr ? '<p class="trend"><b>' + tr.ic + '</b>' + esc(tr.t) + '</p>' : '') +
-    '<div class="mchips">' + sourceChip(p) + avg + '</div></article>';
+    '<div class="mchips">' + sourceChip(p) + '</div></article>';
 }
 function actsHTML(p, a){
   const nowH = myt(NOW).getUTCHours();
@@ -579,7 +578,7 @@ function hourlyHTML(p, a){
 function adjusted(p){
   const c = p.cams, o = p.obs && p.obs.pm != null ? p.obs.pm : null; if (o == null || c[24] == null) return null;
   const gap = o - c[24], out = [];
-  for (let k = 0; k <= 48; k++) out.push(k < 24 || c[k] == null ? null : Math.max(0, c[k] + gap * Math.exp(-(k - 24)/12)));
+  for (let k = 0; k <= 48; k++) out.push(k < 24 || c[k] == null ? null : Math.max(0, c[k] + gap * Math.exp(-(k - 24)/24)));
   return out;
 }
 function realityHTML(p, a){
@@ -865,13 +864,13 @@ function setPlay(on){
 function faqHTML(){
   const q = (t, a, open) => '<details class="card"' + (open ? ' open' : '') + '><summary>' + t + '</summary><div class="ans">' + a + '</div></details>';
   const scale = '<div class="scale">' + [['0–50','Good'],['51–100','Moderate'],['101–200','Unhealthy'],['201–300','Very unhealthy'],['300+','Hazardous']].map((r, i) => '<div><b style="background:' + BANDS[i].c + '">' + r[0] + '</b>' + r[1] + '</div>').join('') + '</div>';
-  return q('What does the big number mean?', '<p>It’s the <b>API</b> (Air Pollutant Index), Malaysia’s official air score. Lower is better.</p>' + scale + '<p>We work it out from PM2.5, the tiny smoke bits that make haze, using the Department of Environment’s own conversion table.</p>', true) +
-    q('Why is it different from the APIMS app?', '<p>Three reasons. We show the latest <b>hourly</b> reading, so we react faster; DOE averages over 24 hours, so their number lags behind. When we have enough readings we show the 24-hour average too (📊).</p><p>When two DOE stations are about equally close, we <b>blend</b> them, with the closer one counting more. We sometimes use a <b>local sensor</b> right next to the place, if it agrees with the official stations. And with no station nearby we use the forecast.</p><p>For the official number, check <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>') +
+  return q('What does the big number mean?', '<p>It’s the <b>API</b> (Air Pollutant Index), Malaysia’s official air score. Lower is better.</p>' + scale + '<p>Right now it’s DOE’s own number from the nearest station, the same one APIMS shows. The hours ahead come from our forecast, which works in PM2.5 (the tiny smoke bits that make haze) and is converted with DOE’s own table.</p>', true) +
+    q('Why might it differ from the APIMS app?', '<p>The “now” number is DOE’s own API from the nearest station, so it should match APIMS for that station. It can differ a little when two stations are about equally close: then we <b>blend</b> them, with the closer one counting more. We update every hour, so APIMS may be one reading ahead.</p><p>We sometimes use a <b>local sensor</b> right next to the place, but only if it agrees with the DOE stations. With no station nearby we use the forecast.</p><p>For the official number, check <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>') +
     q('How do you predict the haze?', '<p>Every hour a robot (well, a script 🤖) does four things:</p><p>1. Grabs every fire NASA’s satellites spotted in the last two days.<br>2. Gets the wind and rain forecast.<br>3. Pushes pretend smoke from each fire along the wind, to see where it ends up.<br>4. Starts from the real reading near each place and blends into Copernicus’s air forecast.</p><p>The smoke tracking is rough, so trust it for direction and timing more than exact numbers.</p>') +
     q('How does “Can I…?” decide?', '<p>Hard exercise (sport, running, golf) gets ✅ up to API 50 and ⚠️ up to 100. Hanging out or walking gets ✅ up to 100 and ⚠️ up to 200. Windows open up to 50.</p><p>We look at the worst hour in the time you’d be out, and suggest the cleanest slot from 6am to 8pm today or tomorrow. If you have asthma or a cough, be one step more careful.</p>') +
     q('Can I add my own places?', '<p>Yes. Tap <b>＋</b> next to the places at the top, or <b>＋ Add</b> on the Places tab. Search for somewhere or use where you are now, then give it a name.</p><p>To remove one, tap <b>✏️ Edit</b> on the Places tab, then 🗑️. Removing one of the main places only hides it on your device, and you can bring it back from the same screen.</p><p>Places you add stay on your device, not on the website. They get the same forecast and nearby station readings, but not the smoke-source breakdown or the 24-hour reading history.</p>') +
     q('Do masks help?', '<p>Normal cloth or surgical masks don’t stop haze very well. An <b>N95</b> or <b>KF94</b> that fits snugly does. Indoors, keep windows shut and run an air purifier.</p>') +
-    q('Where does the data come from?', '<p>Fires: NASA FIRMS (VIIRS satellites). Wind, rain and PM2.5 forecast: Open-Meteo with Copernicus CAMS data (CC BY 4.0). Live readings: DOE stations and local sensors via WAQI. Map: Natural Earth.</p><p>WAQI publishes US-style AQI, which we convert back to PM2.5 before applying the Malaysian table. That conversion is our best understanding of how WAQI works, so treat small differences with a pinch of salt.</p>') +
+    q('Where does the data come from?', '<p>Fires: NASA FIRMS (VIIRS satellites). Wind, rain and PM2.5 forecast: Open-Meteo with Copernicus CAMS data (CC BY 4.0). Live readings: DOE stations and local sensors via WAQI. Map: Natural Earth.</p><p>For DOE stations, WAQI passes on DOE’s official API. Local sensors report on the US scale, which we convert, so treat small differences from them with a pinch of salt.</p>') +
     q('Is this official?', '<p>No. Haze Watch is a family project and a rough guide. It isn’t a health service. If you feel unwell, tell an adult or see a doctor.</p>');
 }
 
@@ -955,7 +954,7 @@ async function buildCustom(list){
     for (let k = 0; k < 97; k++){ const v = ah.pm2_5[a0 + k]; cams.push(v == null ? null : Math.round(v)); const r = wh.precipitation[w0 + k]; rn.push(r == null ? 0 : Math.round(r*10)/10); }
     for (let f = 0; f <= 24; f++){ const h = w0 + 24 + 3*f, d = wh.wind_direction_850hPa[h], sp = wh.wind_speed_850hPa[h]; wd.push(d == null || sp == null ? (wd[f - 1] || [200, 3]) : [Math.round(d), Math.round(sp*10)/10]); }
     const obs = nearestObs(c), o = obs ? obs.pm : null, gap = o != null && cams[24] != null ? o - cams[24] : 0;
-    const est = cams.map((v, k) => k < 24 ? v : k === 24 ? (o != null ? o : v) : v == null ? null : Math.round(Math.max(0, v + gap*Math.exp(-(k - 24)/12))*10)/10);
+    const est = cams.map((v, k) => k < 24 ? v : k === 24 ? (o != null ? o : v) : v == null ? null : Math.round(Math.max(0, v + gap*Math.exp(-(k - 24)/24))*10)/10);
     const obsHist = Array(25).fill(null); if (o != null) obsHist[24] = o;
     return {id:c.id, name:c.name, lat:c.lat, lon:c.lon, custom:true, cams, pm:est, sc:smokeAt(c), rn, wd, srcs:[], obs, obsHist};
   });
