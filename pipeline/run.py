@@ -220,6 +220,7 @@ def load_stations(places, now):
 
     bounds(f"{R['south']},{R['west']},{R['north']},{R['east']}", "official", "waqi_bounds_official.json")
     bounds(near_box, "hyperlocal", "waqi_bounds_hyperlocal.json")
+    bounds(near_box, "all", "waqi_bounds_all.json")   # anything not already known as official is treated as a sensor
     allst = list(found.values())
 
     detail = {}
