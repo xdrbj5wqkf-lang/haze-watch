@@ -515,7 +515,7 @@ function actsHTML(p, a){
     return '<div class="act v' + r + '"><div class="ae">' + x.e + '</div><div class="an">' + x.n + '</div><div class="av">' + VERD[x.lvl][r] + '</div><div class="as">' + esc(sub) + '</div></div>'; });
   const mr = a.nb <= 1 ? 0 : a.nb === 2 ? 1 : 2;
   tiles.push('<div class="act v' + mr + '"><div class="ae">😷</div><div class="an">Need a mask?</div><div class="av">' + ['✅ Nope','⚠️ N95 outside','❌ N95, stay in'][mr] + '</div><div class="as">Cloth masks don’t stop haze. N95 or KF94 do.</div></div>');
-  return '<article class="card span2 pop"><h2><span class="em">🤔</span>Can I…?</h2><p class="sub">For the next few hours at ' + esc(p.name) + '.</p><div class="acts">' + tiles.join('') + '</div><p class="tiny">Got asthma or a cough? Treat ⚠️ like ❌.</p></article>';
+  return '<article class="card span2 pop"><h2><span class="em">🤔</span>Can I…?</h2><p class="sub">At ' + esc(p.name) + ', judged on the worst hour you’d be out, so it can be stricter than the big number.</p><div class="acts">' + tiles.join('') + '</div><p class="tiny">Got asthma or a cough? Treat ⚠️ like ❌.</p></article>';
 }
 function hourlyHTML(p, a){
   const vals = []; let vmax = 110;
