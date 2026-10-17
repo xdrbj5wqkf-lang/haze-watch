@@ -131,6 +131,21 @@ a{color:#fff}
 @keyframes pulse{0%{transform:scale(.6);opacity:.75}100%{transform:scale(2.6);opacity:0}}
 .head{transition:cx .45s linear, cy .45s linear}
 
+
+/* forecast vs readings */
+.cmp-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--fg-2);margin:10px 0 4px}
+.cmp-legend span{display:inline-flex;align-items:center;gap:6px}
+.cmp{position:relative;margin:0 -6px;touch-action:pan-y}
+.cmp svg{display:block;width:100%;height:auto;overflow:visible}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.3s var(--ease) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.pop{transform-box:fill-box;transform-origin:center;animation:pop .5s var(--spring) both}
+@keyframes pop{from{transform:scale(0)}to{transform:none}}
+.fadein{animation:fade .9s ease .9s both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.tip{position:absolute;top:0;transform:translateX(-50%);pointer-events:none;background:rgba(14,20,32,.82);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:.5px solid var(--hair);border-radius:10px;padding:5px 9px;font-size:12px;line-height:1.35;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tip b{font-weight:700}
+
 /* source */
 .srcbars{display:grid;gap:8px;margin-top:12px}
 .srcbar{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14.5px}
@@ -378,7 +393,7 @@ function setHaze(band, wd){
   if (REDUCED){ drawHaze(performance.now()); return; }
   cancelAnimationFrame(hazeRaf); hazeRaf = requestAnimationFrame(drawHaze);
 }
-addEventListener('resize', () => { sizeHaze(); if (REDUCED) drawHaze(performance.now()); });
+let rsT = 0; addEventListener('resize', () => { sizeHaze(); if (REDUCED) drawHaze(performance.now()); clearTimeout(rsT); rsT = setTimeout(() => { if (D) drawCompare(); }, 150); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !REDUCED){ cancelAnimationFrame(hazeRaf); lastT = 0; hazeRaf = requestAnimationFrame(drawHaze); } });
 sizeHaze(); seedBlobs();
 
@@ -399,7 +414,8 @@ function renderHero(){
   countTo($('#heroNum'), Math.round(a.nowApi));
   $('#heroBand').textContent = b.name;
   const peakTxt = a.pb > a.nb ? 'Rising to ' + Math.round(a.peakApi) + ' by ' + when(idx(a.peakK)) : a.peakApi < a.nowApi - 10 ? 'Easing over the next day' : 'Peak ' + Math.round(a.peakApi) + ' at ' + when(idx(a.peakK));
-  $('#heroSub').textContent = b.verdict + '. ' + peakTxt + '.';
+  const stTxt = a.obsApi != null && Math.abs(a.obsApi - a.nowApi) >= 10 ? ' Nearest station reads ' + Math.round(a.obsApi) + '.' : '';
+  $('#heroSub').textContent = b.verdict + '. ' + peakTxt + '.' + stTxt;
   const dots = D.places.map((_, i) => '<i class="' + (i === SEL ? 'on' : '') + '"></i>').join('');
   $('#heroDots').innerHTML = dots;
   $('#tbDots').innerHTML = D.places.map((q, i) => '<i class="' + (i === SEL ? 'on' : '') + '" role="tab" aria-selected="' + (i === SEL) + '" aria-label="' + esc(q.name) + '"></i>').join('');
@@ -420,6 +436,7 @@ const ICON = {
   pin: s => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
   check: s => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>',
   info: s => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+  chart: s => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 4-7 5 6"/><circle cx="8" cy="11" r="1.3" fill="currentColor"/><circle cx="16" cy="7" r="1.3" fill="currentColor"/></svg>',
   chev: s => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>'
 };
 const card = (cls, icon, title, body, extra) => '<article class="card ' + cls + '"><div class="card-h">' + ICON[icon](15) + '<span class="grow">' + title + '</span>' + (extra || '') + '</div>' + body + '</article>';
@@ -432,6 +449,78 @@ function hourlyCard(p, a){
     h += '<div class="hr"><span class="t' + (k === 24 ? ' now' : '') + '">' + (k === 24 ? 'Now' : hh(idx(k))) + '</span><span class="ring" style="color:' + b.c + '"><span class="fill"></span></span><span class="v">' + Math.round(ap) + '</span>' + smoke + '</div>'; }
   const next = a.pb > a.nb ? 'Worsening to ' + BANDS[a.pb].name.toLowerCase() + ' around ' + when(idx(a.peakK)) + '.' : a.pb < a.nb ? 'Improving to ' + BANDS[a.pb].name.toLowerCase() + ' later.' : 'Staying ' + BANDS[a.nb].name.toLowerCase() + ', peaking near ' + Math.round(a.peakApi) + ' around ' + when(idx(a.peakK)) + '.';
   return card('wide', 'clock', 'Next 24 hours', '<p class="muted" style="margin:0 0 12px">' + esc(next) + '</p><div class="hours">' + h + '</div>');
+}
+function compareCard(p, a){
+  const obsN = (p.obsHist || []).filter(v => v != null).length;
+  let msg;
+  if (!D.meta.stationsUsed) msg = 'Add your WAQI token to plot real station readings against the forecast.';
+  else if (a.obsApi == null) msg = 'No monitoring station within 40 km, so only the forecast is shown.';
+  else { const gap = Math.round(a.obsApi - a.nowApi);
+    msg = 'The nearest station reads ' + Math.round(a.obsApi) + (Math.abs(gap) < 10 ? ', close to the forecast.' : ', ' + Math.abs(gap) + (gap > 0 ? ' above' : ' below') + ' the forecast.');
+    const adj = adjusted(p); if (adj && Math.abs(gap) >= 10){ let pk = 24; for (let k = 25; k <= 48; k++) if (adj[k] != null && adj[k] > (adj[pk] ?? -1)) pk = k;
+      msg += ' Adjusted for that gap, the next 24 hours peak near ' + Math.round(api(adj[pk])) + ' around ' + when(idx(pk)) + '.'; }
+    if (obsN < 6) msg += ' Readings build up hourly; ' + obsN + ' so far.'; }
+  const legend = '<div class="cmp-legend"><span><svg width="18" height="8"><path d="M1 4h16" stroke="#fff" stroke-width="2"/></svg>Forecast</span>' +
+    (a.obsApi != null || obsN ? '<span><svg width="12" height="12"><circle cx="6" cy="6" r="4" fill="#64d2ff"/></svg>Station reading</span>' : '') +
+    (a.obsApi != null ? '<span><svg width="18" height="8"><path d="M1 4h16" stroke="#64d2ff" stroke-width="2" stroke-dasharray="4 3"/></svg>Forecast adjusted to station</span>' : '') + '</div>';
+  return card('wide', 'chart', 'Forecast and readings', '<p class="lead" style="margin:0">' + esc(msg) + '</p>' + legend + '<div class="cmp" id="cmp"></div>' +
+    '<p class="tiny" style="margin:6px 0 0">Past 24 hours and next 24 hours, approximate API. ' + (p.obs && p.obs.station ? 'Station: ' + esc(p.obs.station) + ', ' + p.obs.km + ' km away.' : '') + '</p>');
+}
+// forecast shifted by the current station gap, fading out over about 12 hours
+function adjusted(p){
+  const o = p.obs && p.obs.pm != null ? p.obs.pm : null; if (o == null || p.pm[24] == null) return null;
+  const gap = o - p.pm[24]; const out = [];
+  for (let k = 0; k <= 48; k++) out.push(k < 24 || p.pm[k] == null ? null : Math.max(0, p.pm[k] + gap * Math.exp(-(k - 24)/12)));
+  return out;
+}
+function drawCompare(){
+  const host = document.getElementById('cmp'); if (!host) return;
+  const p = D.places[SEL], a = A[SEL];
+  const W = Math.max(300, Math.round(host.clientWidth || 340)), Hh = innerWidth >= 900 ? 230 : 200, L = 4, R = W - 34, T = 12, B = Hh - 24;
+  const f = p.pm.slice(0, 49).map(v => v == null ? null : api(v));
+  const ob = (p.obsHist || []).map(v => v == null ? null : api(v));
+  if (a.obsApi != null) ob[24] = a.obsApi;
+  const adjPm = adjusted(p), ad = adjPm ? adjPm.map(v => v == null ? null : api(v)) : null;
+  const all = [...f, ...ob, ...(ad || [])].filter(v => v != null);
+  const ymax = Math.max(120, Math.ceil(Math.max(...all) * 1.12 / 25) * 25);
+  const X = k => L + k/48*(R - L), Y = v => B - v/ymax*(B - T);
+  let s = '';
+  const edges = [0,50,100,200,300,500];
+  for (let b = 0; b < 5; b++){ const lo = edges[b], hi = Math.min(edges[b+1], ymax); if (lo >= ymax) break;
+    s += '<rect x="' + L + '" y="' + Y(hi).toFixed(1) + '" width="' + (R-L) + '" height="' + (Y(lo)-Y(hi)).toFixed(1) + '" fill="' + BANDS[b].c + '" opacity=".1"/>'; }
+  [50,100,200,300].filter(v => v < ymax).forEach(v => { s += '<line x1="' + L + '" x2="' + R + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="rgba(255,255,255,.16)" stroke-dasharray="2 4"/><text x="' + (R + 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="rgba(255,255,255,.55)">' + v + '</text>'; });
+  s += '<rect x="' + X(24).toFixed(1) + '" y="' + T + '" width="' + (R - X(24)).toFixed(1) + '" height="' + (B - T) + '" fill="rgba(255,255,255,.05)"/>';
+  for (let k = 0; k <= 48; k += 6){ const lab = k === 24 ? 'Now' : hh(idx(k)); s += '<text x="' + X(k).toFixed(1) + '" y="' + (Hh - 6) + '" text-anchor="middle" font-size="11" font-weight="' + (k === 24 ? 700 : 500) + '" fill="rgba(255,255,255,' + (k === 24 ? .95 : .55) + ')">' + lab + '</text>'; }
+  s += '<line x1="' + X(24).toFixed(1) + '" x2="' + X(24).toFixed(1) + '" y1="' + T + '" y2="' + B + '" stroke="rgba(255,255,255,.55)" stroke-width="1"/>';
+  const path = arr => { let d = '', pen = false; arr.forEach((v, k) => { if (v == null){ pen = false; return; } d += (pen ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; }); return d; };
+  s += '<path d="' + path(f) + '" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" pathLength="1" class="' + (REDUCED ? '' : 'draw') + '"/>';
+  if (ad) s += '<path d="' + path(ad) + '" fill="none" stroke="#64d2ff" stroke-width="2" stroke-dasharray="5 4" class="' + (REDUCED ? '' : 'fadein') + '"/>';
+  const obPts = ob.map((v, k) => v == null ? null : [k, v]).filter(Boolean);
+  if (obPts.length > 1) s += '<path d="' + path(ob) + '" fill="none" stroke="#64d2ff" stroke-width="1.5" opacity=".7"/>';
+  s += obPts.map(([k, v], i) => '<circle cx="' + X(k).toFixed(1) + '" cy="' + Y(v).toFixed(1) + '" r="4.5" fill="#64d2ff" stroke="rgba(18,24,38,.9)" stroke-width="2" class="' + (REDUCED ? '' : 'pop') + '" style="animation-delay:' + (300 + i*40) + 'ms"/>').join('');
+  // direct labels at the ends
+  const lab = (x, y, txt, col, anchor) => '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + anchor + '" font-size="12" font-weight="700" fill="' + col + '" stroke="rgba(18,24,38,.75)" stroke-width="3" paint-order="stroke">' + txt + '</text>';
+  const fEnd = f[48] != null ? 48 : f.findLastIndex(v => v != null);
+  if (fEnd > 24){ const yF = Y(f[fEnd]), yA = ad ? Y(ad[fEnd]) : null, sep = yA != null && Math.abs(yF - yA) < 15 ? (yF < yA ? -8 : 8) : 0;
+    s += lab(X(fEnd) - 4, yF - 8 + sep, 'Forecast ' + Math.round(f[fEnd]), '#fff', 'end');
+    if (ad) s += lab(X(fEnd) - 4, yA - 8 - sep, 'Adjusted ' + Math.round(ad[fEnd]), '#64d2ff', 'end'); }
+  if (a.obsApi != null) s += lab(X(24) - 8, Y(a.obsApi) - 9, 'Station ' + Math.round(a.obsApi), '#64d2ff', 'end');
+  s += '<g id="cmpCross" style="display:none"><line id="cmpLine" y1="' + T + '" y2="' + B + '" stroke="#fff" stroke-width="1"/><circle id="cmpF" r="4" fill="#fff"/><circle id="cmpO" r="4" fill="#64d2ff" stroke="#fff" stroke-width="1.5"/></g>';
+  s += '<rect id="cmpHit" x="' + L + '" y="0" width="' + (R - L) + '" height="' + Hh + '" fill="transparent"/>';
+  host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Forecast and station readings for ' + esc(p.name) + ', past 24 hours and next 24 hours">' + s + '</svg><div class="tip" id="cmpTip" style="display:none"></div>';
+  const svg = host.querySelector('svg'), hit = document.getElementById('cmpHit');
+  const show = clientX => { const r = svg.getBoundingClientRect(); const x = (clientX - r.left) / r.width * W; const k = Math.max(0, Math.min(48, Math.round((x - L)/(R - L)*48)));
+    const cross = document.getElementById('cmpCross'); cross.style.display = '';
+    document.getElementById('cmpLine').setAttribute('x1', X(k)); document.getElementById('cmpLine').setAttribute('x2', X(k));
+    const cf = document.getElementById('cmpF'), co = document.getElementById('cmpO');
+    if (f[k] != null){ cf.setAttribute('cx', X(k)); cf.setAttribute('cy', Y(f[k])); cf.style.display = ''; } else cf.style.display = 'none';
+    const ov = ob[k] != null ? ob[k] : null; if (ov != null){ co.setAttribute('cx', X(k)); co.setAttribute('cy', Y(ov)); co.style.display = ''; } else co.style.display = 'none';
+    const tip = document.getElementById('cmpTip'); tip.style.display = '';
+    tip.innerHTML = '<b>' + (k === 24 ? 'Now' : hh(idx(k)) + ' ' + DOW[myt(idx(k)).getUTCDay()]) + '</b><br>Forecast ' + (f[k] != null ? Math.round(f[k]) : '—') + (ov != null ? '<br><span style="color:#64d2ff">Station ' + Math.round(ov) + '</span>' : '') + (ad && ad[k] != null && k > 24 ? '<br><span style="color:#64d2ff">Adjusted ' + Math.round(ad[k]) + '</span>' : '');
+    const px = X(k)/W*r.width; tip.style.left = Math.max(60, Math.min(r.width - 60, px)) + 'px'; };
+  const hide = () => { document.getElementById('cmpCross').style.display = 'none'; document.getElementById('cmpTip').style.display = 'none'; };
+  hit.addEventListener('pointerdown', e => show(e.clientX)); hit.addEventListener('pointermove', e => show(e.clientX));
+  hit.addEventListener('pointerleave', hide); hit.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') setTimeout(hide, 1600); });
 }
 function bestCard(p){
   const row = (off, label) => { const b = bestWindow(p, off); const d = myt(NOW); const mid = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - MYT + off*24*H;
@@ -581,7 +670,8 @@ function renderLists(){
 function renderCards(){
   const p = D.places[SEL], a = A[SEL];
   const mapHtml = mapCard();
-  $('#cards').innerHTML = hourlyCard(p, a) + bestCard(p) + daysCard(p, a) + mapHtml + sourceCard(p, a) + windCard(p) + stationCard(p, a) + firesCard() + checkCard() + aboutCard();
+  $('#cards').innerHTML = hourlyCard(p, a) + compareCard(p, a) + bestCard(p) + daysCard(p, a) + mapHtml + sourceCard(p, a) + windCard(p) + firesCard() + checkCard() + aboutCard();
+  drawCompare();
   if (!REDUCED) requestAnimationFrame(() => requestAnimationFrame(() => { const n = document.getElementById('needle'); if (n) n.style.transform = 'rotate(' + ((p.wd[0][0] + 180) % 360) + 'deg)'; }));
   smokeFront = 0; drawFrame(mapFrame);
   const wrap = $('#mapWrap');

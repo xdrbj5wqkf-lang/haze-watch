@@ -453,6 +453,18 @@ def main():
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(rows)
     acc = accuracy(rows[-24 * 15 * len(places):], [p["id"] for p in places])
 
+    # station readings for the last 24 hours, aligned with the forecast series (index 0 = 24 h ago, 24 = now)
+    start = datetime.fromtimestamp(now_hour, timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
+    for p in out_places:
+        series = [None] * 25
+        for r in rows:
+            if r["place"] != p["id"] or r["obs_pm"] in ("", None):
+                continue
+            k = int(round((datetime.fromisoformat(r["hour"]) - start).total_seconds() / 3600))
+            if 0 <= k <= 24:
+                series[k] = round(float(r["obs_pm"]), 1)
+        p["obsHist"] = series
+
     latest = {
         "meta": {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat().replace("+00:00", "Z"),
                  "nowISO": datetime.fromtimestamp(now_hour, timezone.utc).isoformat().replace("+00:00", "Z"),
