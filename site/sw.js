@@ -1,5 +1,5 @@
 // Haze Watch service worker: app shell cached, forecast fetched fresh with the last copy as offline fallback.
-const SHELL = 'haze-shell-v1', DATA = 'haze-data';
+const SHELL = 'haze-shell-v2', DATA = 'haze-data';
 const FILES = ['./', 'index.html', 'geo.json', 'manifest.webmanifest', 'icons/apple-touch-icon.png', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== SHELL && k !== DATA).map(k => caches.delete(k))))); self.clients.claim(); });
