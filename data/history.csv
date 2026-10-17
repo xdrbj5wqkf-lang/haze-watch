@@ -20,11 +20,11 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-10-17T09:00:00,mk,38.7,"Batu Muda,Kuala Lumpur, Wilayah Persekutuan, Malaysia",72,32,0,9,27.5
 2026-10-17T09:00:00,bt,28.7,Lorong Timur,72,32,0,10,26.1
 2026-10-17T09:00:00,ah,74.9,"Cheras,Kuala Lumpur, Wilayah Persekutuan, Malaysia",72,32,0,10,32.4
-2026-10-17T10:00:00,bd,15.4,"Petaling Jaya, Selangor, Malaysia",89,48,45,2,38.0
-2026-10-17T10:00:00,s16,15.4,"Petaling Jaya, Selangor, Malaysia",89,48,51,4,38.0
-2026-10-17T10:00:00,klgcc,15.4,"Petaling Jaya, Selangor, Malaysia",89,48,51,4,38.0
-2026-10-17T10:00:00,saujana,21.1,"Shah Alam, Selangor, Malaysia",89,48,32,3,38.8
-2026-10-17T10:00:00,mk,38.7,"Batu Muda,Kuala Lumpur, Wilayah Persekutuan, Malaysia",89,48,45,2,41.2
-2026-10-17T10:00:00,bt,25.4,Lorong Timur,89,48,45,2,39.4
-2026-10-17T10:00:00,ah,63.2,"Cheras,Kuala Lumpur, Wilayah Persekutuan, Malaysia",89,48,55,2,44.5
-2026-10-17T10:00:00,gis,15.4,"Petaling Jaya, Selangor, Malaysia",89,48,45,2,38.0
+2026-10-17T10:00:00,bd,31.1,Petaling Jaya + Batu Muda + Cheras,89,48,45,2,40.2
+2026-10-17T10:00:00,s16,24.6,Petaling Jaya + Cheras,89,48,51,4,39.3
+2026-10-17T10:00:00,klgcc,15.4,Petaling Jaya,89,48,51,4,38.0
+2026-10-17T10:00:00,saujana,20.2,Shah Alam + Petaling Jaya,89,48,32,3,38.7
+2026-10-17T10:00:00,mk,32.8,Batu Muda + Petaling Jaya + Cheras,89,48,45,2,40.4
+2026-10-17T10:00:00,bt,30.6,Lorong Timur,89,48,45,2,40.1
+2026-10-17T10:00:00,ah,54.9,Cheras + Batu Muda,89,48,55,2,43.4
+2026-10-17T10:00:00,gis,31.5,Petaling Jaya + Batu Muda + Cheras,89,48,45,2,40.2
