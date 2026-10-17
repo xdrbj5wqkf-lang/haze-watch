@@ -6,3 +6,10 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24
 2026-10-17T04:00:00,mk,103.9,Kuala Lumpur,50,32,0,277
 2026-10-17T04:00:00,bt,103.9,Kuala Lumpur,50,32,0,277
 2026-10-17T04:00:00,ah,103.9,Kuala Lumpur,50,32,0,238
+2026-10-17T08:00:00,bd,74.9,Kuala Lumpur,70,33,62,37
+2026-10-17T08:00:00,s16,86.5,"Petaling Jaya, Selangor, Malaysia",70,33,75,37
+2026-10-17T08:00:00,klgcc,86.5,"Petaling Jaya, Selangor, Malaysia",70,33,75,37
+2026-10-17T08:00:00,saujana,119.4,"Shah Alam, Selangor, Malaysia",70,33,76,37
+2026-10-17T08:00:00,mk,74.9,Kuala Lumpur,70,33,62,39
+2026-10-17T08:00:00,bt,74.9,Kuala Lumpur,70,33,62,39
+2026-10-17T08:00:00,ah,74.9,Kuala Lumpur,70,33,62,39
