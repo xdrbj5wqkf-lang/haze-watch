@@ -518,7 +518,9 @@ function trend(p, a){
 function sourceChip(p){
   const o = p.obs;
   if (!o || o.pm == null) return '<span class="mchip">🛰️ Forecast only, no station nearby</span>';
-  return '<span class="mchip">' + (o.type === 'sensor' ? '📡 Local sensor · ' : '🏛️ DOE station · ' + esc(stName(o.station)) + ' · ') + o.km + ' km</span>';
+  if (o.type === 'sensor') return '<span class="mchip">📡 Local sensor · ' + o.km + ' km</span>';
+  if (o.parts && o.parts.length > 1) return '<span class="mchip">🏛️ ' + o.parts.length + ' DOE stations blended · ' + o.km + '+ km</span>';
+  return '<span class="mchip">🏛️ DOE station · ' + esc(stName(o.station)) + ' · ' + o.km + ' km</span>';
 }
 
 /* "Can I...?" ratings. hard = sport, running, golf; easy = walking, hanging out; win = opening windows */
@@ -586,10 +588,11 @@ function realityHTML(p, a){
   if (!D.meta.stationsUsed) msg = 'Live station readings are switched off, so this shows the forecast only.';
   else if (a.obsApi == null) msg = 'No station within 25 km of here, so it’s forecast only.';
   else { const gap = Math.round(a.obsApi - a.camsNow);
-    msg = (p.obs.type === 'sensor' ? 'The local sensor says ' : 'The DOE station says ') + Math.round(a.obsApi) + '. ' +
+    msg = (p.obs.type === 'sensor' ? 'The local sensor says ' : p.obs.parts && p.obs.parts.length > 1 ? 'The nearby DOE stations say ' : 'The DOE station says ') + Math.round(a.obsApi) + '. ' +
       (Math.abs(gap) < 10 ? 'The forecast nailed it 🎯' : 'The forecast said ' + Math.round(a.camsNow) + ', so real air is ' + (gap > 0 ? 'worse' : 'better') + ' than predicted ' + (gap > 0 ? '😬' : '😮‍💨') + '. We nudge the next hours to match.');
     if (obsN < 6) msg += ' (Readings build up every hour: ' + obsN + ' so far.)'; }
-  const anchor = p.obs && p.obs.anchor ? ' Nearest DOE station: ' + esc(stName(p.obs.anchor.station)) + ', ' + p.obs.anchor.km + ' km, reading ' + Math.round(api(p.obs.anchor.pm)) + '.' : '';
+  const parts = p.obs && p.obs.parts && p.obs.parts.length > 1 ? ' Blend of ' + p.obs.parts.map(x => esc(x.station) + ' (' + Math.round(api(x.pm)) + ', ' + x.km + ' km)').join(' and ') + ', the closer one counting more.' : '';
+  const anchor = (p.obs && p.obs.anchor ? ' Nearest DOE reading: ' + esc(p.obs.anchor.station) + ', ' + p.obs.anchor.km + ' km, ' + Math.round(api(p.obs.anchor.pm)) + '.' : '') + parts;
   const legend = '<div class="legend"><span><svg width="20" height="8"><path d="M1 4h18" style="stroke:var(--ink);opacity:.7" stroke-width="2.4"/></svg>Forecast</span>' +
     (obsN || a.obsApi != null ? '<span><svg width="12" height="12"><circle cx="6" cy="6" r="4.5" style="fill:var(--accent)"/></svg>Real readings</span>' : '') +
     (a.obsApi != null ? '<span><svg width="20" height="8"><path d="M1 4h18" style="stroke:var(--accent)" stroke-width="2.4" stroke-dasharray="5 3"/></svg>Our best guess</span>' : '') + '</div>';
@@ -863,7 +866,7 @@ function faqHTML(){
   const q = (t, a, open) => '<details class="card"' + (open ? ' open' : '') + '><summary>' + t + '</summary><div class="ans">' + a + '</div></details>';
   const scale = '<div class="scale">' + [['0–50','Good'],['51–100','Moderate'],['101–200','Unhealthy'],['201–300','Very unhealthy'],['300+','Hazardous']].map((r, i) => '<div><b style="background:' + BANDS[i].c + '">' + r[0] + '</b>' + r[1] + '</div>').join('') + '</div>';
   return q('What does the big number mean?', '<p>It’s the <b>API</b> (Air Pollutant Index), Malaysia’s official air score. Lower is better.</p>' + scale + '<p>We work it out from PM2.5, the tiny smoke bits that make haze, using the Department of Environment’s own conversion table.</p>', true) +
-    q('Why is it different from the APIMS app?', '<p>Three reasons. We show the latest <b>hourly</b> reading, so we react faster; DOE averages over 24 hours, so their number lags behind. When we have enough readings we show the 24-hour average too (📊).</p><p>We sometimes use a <b>local sensor</b> right next to the place, if it agrees with the official station. And with no station nearby we use the forecast.</p><p>For the official number, check <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>') +
+    q('Why is it different from the APIMS app?', '<p>Three reasons. We show the latest <b>hourly</b> reading, so we react faster; DOE averages over 24 hours, so their number lags behind. When we have enough readings we show the 24-hour average too (📊).</p><p>When two DOE stations are about equally close, we <b>blend</b> them, with the closer one counting more. We sometimes use a <b>local sensor</b> right next to the place, if it agrees with the official stations. And with no station nearby we use the forecast.</p><p>For the official number, check <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>') +
     q('How do you predict the haze?', '<p>Every hour a robot (well, a script 🤖) does four things:</p><p>1. Grabs every fire NASA’s satellites spotted in the last two days.<br>2. Gets the wind and rain forecast.<br>3. Pushes pretend smoke from each fire along the wind, to see where it ends up.<br>4. Starts from the real reading near each place and blends into Copernicus’s air forecast.</p><p>The smoke tracking is rough, so trust it for direction and timing more than exact numbers.</p>') +
     q('How does “Can I…?” decide?', '<p>Hard exercise (sport, running, golf) gets ✅ up to API 50 and ⚠️ up to 100. Hanging out or walking gets ✅ up to 100 and ⚠️ up to 200. Windows open up to 50.</p><p>We look at the worst hour in the time you’d be out, and suggest the cleanest slot from 6am to 8pm today or tomorrow. If you have asthma or a cough, be one step more careful.</p>') +
     q('Can I add my own places?', '<p>Yes. Tap <b>＋</b> next to the places at the top, or <b>＋ Add</b> on the Places tab. Search for somewhere or use where you are now, then give it a name.</p><p>To remove one, tap <b>✏️ Edit</b> on the Places tab, then 🗑️. Removing one of the main places only hides it on your device, and you can bring it back from the same screen.</p><p>Places you add stay on your device, not on the website. They get the same forecast and nearby station readings, but not the smoke-source breakdown or the 24-hour reading history.</p>') +
@@ -921,10 +924,15 @@ function assemble(){
 function nearestObs(c){
   const now = Date.now(), fresh = x => { const t = Date.parse(x.t); return isNaN(t) || now - t < 3*H; };
   const st = (D.stations || []).filter(x => x.pm != null && fresh(x)).map(x => ({x, km:kmB(c, x)})).sort((a, b) => a.km - b.km);
-  const off = st.find(o => o.x.type === 'official' && o.km <= 25);
-  const sen = st.find(o => o.x.type === 'sensor' && o.km <= 3 && (!off || (o.km < off.km/2 && Math.abs(o.x.pm - off.x.pm) <= .5*Math.max(off.x.pm, 10))));
-  const pk = sen || off; if (!pk) return null;
-  return {pm:pk.x.pm, station:pk.x.name, km:Math.round(pk.km*10)/10, type:pk.x.type, shared:0, anchor: sen && off ? {station:off.x.name, pm:off.x.pm, km:Math.round(off.km*10)/10} : null};
+  // blend DOE stations about as close as the nearest one, weighted by 1/distance^2 (same rule as the hourly job)
+  const offs = st.filter(o => o.x.type === 'official' && o.km <= 25).slice(0, 4);
+  let off = null;
+  if (offs.length){ const d0 = offs[0].km, g = offs.filter(o => o.km <= Math.max(2*d0, d0 + 5)).slice(0, 3), ws = g.map(o => 1/Math.pow(Math.max(o.km, .5), 2)), sw = ws.reduce((a, b) => a + b, 0);
+    off = {pm:Math.round(g.reduce((a, o, i) => a + ws[i]*o.x.pm, 0)/sw*10)/10, km:Math.round(d0*10)/10, type:'official', shared:0, station:g.map(o => stName(o.x.name)).join(' + '),
+      parts:g.map((o, i) => ({station:stName(o.x.name), pm:o.x.pm, km:Math.round(o.km*10)/10, w:Math.round(ws[i]/sw*100)/100}))}; }
+  const sen = st.find(o => o.x.type === 'sensor' && o.km <= 3 && (!off || (o.km < off.km/2 && Math.abs(o.x.pm - off.pm) <= .5*Math.max(off.pm, 10))));
+  if (sen) return {pm:sen.x.pm, station:sen.x.name, km:Math.round(sen.km*10)/10, type:'sensor', shared:0, anchor: off ? {station:off.station, pm:off.pm, km:off.km} : null};
+  return off;
 }
 // smoke score from the published smoke frames (1-degree cells every 3 hours), scaled to the hourly job's 50 km score
 function smokeAt(c){

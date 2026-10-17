@@ -260,44 +260,59 @@ def load_stations(places, now):
         detail[st["uid"]] = out
         return out
 
+    def short_name(n):
+        return (n or "station").split(",")[0].strip()
+
     obs = []
     for p in places:
         offs = sorted(((km_between(p["lat"], p["lon"], s["lat"], s["lon"]), s) for s in allst if s["type"] == "official"), key=lambda x: x[0])
         sens = sorted(((km_between(p["lat"], p["lon"], s["lat"], s["lon"]), s) for s in allst if s["type"] == "sensor"), key=lambda x: x[0])
-        off = None
-        for km, s in offs[:3]:
+        # Official reading: blend the fresh DOE stations that are about as close as the nearest one
+        # (within twice its distance, or 5 km further), weighted by 1/distance^2. A place sitting
+        # between two stations then gets a value between them instead of flipping to whichever is
+        # a few hundred metres nearer.
+        fresh = []
+        for km, s in offs[:4]:
             if km > 25:
                 break
             r = refine(s)
             if not r["stale"]:
-                off = (km, r)
-                break
+                fresh.append((km, r))
+        off = None
+        if fresh:
+            d0 = fresh[0][0]
+            group = [(km, r) for km, r in fresh if km <= max(2 * d0, d0 + 5)][:3]
+            ws = [1 / max(km, 0.5) ** 2 for km, _ in group]
+            pm = round(sum(w * r["pm"] for w, (_, r) in zip(ws, group)) / sum(ws), 1)
+            off = {"pm": pm, "km": round(d0, 1), "type": "official",
+                   "station": " + ".join(short_name(r["name"]) for _, r in group),
+                   "uid": "+".join(str(r["uid"]) for _, r in group), "time": group[0][1].get("time"),
+                   "parts": [{"station": short_name(r["name"]), "pm": r["pm"], "km": round(km, 1), "w": round(w / sum(ws), 2)}
+                             for w, (km, r) in zip(ws, group)]}
         pick = off
         for km, s in sens[:3]:
             if km > 3:
                 break
-            if off and km >= off[0] / 2:
+            if off and km >= off["km"] / 2:
                 break
             r = refine(s)
             if r["stale"]:
                 continue
-            if off and abs(r["pm"] - off[1]["pm"]) > 0.5 * max(off[1]["pm"], 10):
+            if off and abs(r["pm"] - off["pm"]) > 0.5 * max(off["pm"], 10):
                 continue      # disagrees too much with the official network: likely a faulty or sheltered sensor
-            pick = (km, r)
+            pick = {"pm": r["pm"], "station": r["name"], "km": round(km, 1), "type": "sensor", "uid": r["uid"], "time": r.get("time"),
+                    "anchor": {"station": off["station"], "pm": off["pm"], "km": off["km"]} if off else None}
             break
-        if pick:
-            km, r = pick
-            obs.append({"pm": r["pm"], "station": r["name"], "km": round(km, 1), "type": r["type"], "uid": r["uid"], "time": r.get("time"),
-                        "anchor": ({"station": off[1]["name"], "pm": off[1]["pm"], "km": round(off[0], 1)} if off and r["type"] == "sensor" else None)})
-        else:
-            obs.append(None)
+        obs.append(pick)
     # how many places share each reading
     for o in obs:
         if o:
             o["shared"] = sum(1 for q in obs if q and q["uid"] == o["uid"]) - 1
     keep = [s for s in allst if s["type"] == "official" or any(km_between(p["lat"], p["lon"], s["lat"], s["lon"]) < 30 for p in places)]
     # "t" lets the app skip stale readings when it works out a place the user added on their own device
-    stations = [{"lat": s["lat"], "lon": s["lon"], "pm": s["pm"], "name": s["name"], "type": s["type"], "t": s.get("time")} for s in keep]
+    # use the exact PM2.5 reading where we fetched a station's own feed
+    stations = [{"lat": s["lat"], "lon": s["lon"], "pm": detail.get(s["uid"], s)["pm"], "name": s["name"], "type": s["type"],
+                 "t": detail.get(s["uid"], s).get("time")} for s in keep]
     log("stations", len(stations), "place readings", [(o["type"], o["station"], o["km"]) if o else None for o in obs])
     return stations, obs
 
