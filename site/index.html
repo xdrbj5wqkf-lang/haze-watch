@@ -454,7 +454,7 @@ const BANDS = [
 const bandOf = a => a == null ? 0 : BANDS.findIndex(b => Math.round(a) <= b.max);
 const smokeCat = s => s < 20 ? 0 : s < 100 ? 1 : s < 250 ? 2 : 3;
 const SMOKE = ['No smoke','Light smoke','Some smoke','Heavy smoke'];
-const SHORT = {bd:'B. Damansara', s16:'Section 16', klgcc:'KLGCC', saujana:'Saujana', mk:'Mont Kiara', bt:'Bukit Tunku', ah:'Ampang Hilir'};
+const SHORT = {bd:'B. Damansara', s16:'Section 16', klgcc:'KLGCC', saujana:'Saujana', mk:'Mont Kiara', bt:'Bukit Tunku', ah:'Ampang Hilir', gis:'GIS'};
 const short = p => SHORT[p.id] || (p.name.length > 14 ? p.name.slice(0, 13) + '…' : p.name);
 
 const TIPS = [

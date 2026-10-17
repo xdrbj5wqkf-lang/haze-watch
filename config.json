@@ -50,6 +50,12 @@
       "name": "Ampang Hilir",
       "lat": 3.158,
       "lon": 101.738
+    },
+    {
+      "id": "gis",
+      "name": "Garden International School",
+      "lat": 3.1672,
+      "lon": 101.6478
     }
   ],
   "alerts": {
