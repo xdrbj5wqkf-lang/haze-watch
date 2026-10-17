@@ -424,15 +424,21 @@ def run_model(fires, G, t0, NT, U, V, P, places, now):
 
 
 # ---------------------------------------------------------------- outputs
+# DOE Malaysia PM2.5 sub-index (DOE "API Calculation" guidance): breakpoints in ug/m3 -> API.
+# DOE applies these to a 24-hour average; the app applies them to the latest hourly reading.
+API_PM25 = [(0, 0), (12.0, 50), (75.5, 100), (150.4, 200), (250.4, 300), (350.4, 400), (500.4, 500)]
+
+
 def my_api(pm):
-    """PM2.5 to approximate Malaysian API (breakpoints ASSUMPTION-VERIFY, same as the app)."""
+    """PM2.5 (ug/m3) to Malaysian API, interpolating DOE's breakpoints (same table as the app)."""
     if pm is None:
         return None
-    if pm <= 15: return pm / 15 * 50
-    if pm <= 35: return 50 + (pm - 15) / 20 * 50
-    if pm <= 150: return 100 + (pm - 35) / 115 * 100
-    if pm <= 250: return 200 + (pm - 150)
-    return 300 + (pm - 250) / 250 * 200
+    pm = max(0.0, pm)
+    for (x0, y0), (x1, y1) in zip(API_PM25, API_PM25[1:]):
+        if pm <= x1:
+            return y0 + (pm - x0) * (y1 - y0) / (x1 - x0)
+    (x0, y0), (x1, y1) = API_PM25[-2], API_PM25[-1]
+    return y1 + (pm - x1) * (y1 - y0) / (x1 - x0)
 
 
 BAND_NAMES = ["good", "moderate", "unhealthy", "very unhealthy", "hazardous"]
@@ -446,13 +452,13 @@ def band(a):
 
 
 def accuracy(hist_rows, place_ids):
-    """24-hour-ahead error: CAMS forecast vs 'same as yesterday', against station readings."""
+    """24-hour-ahead error against station readings: CAMS alone, our best estimate, and 'same as yesterday'."""
     by = {}
     for r in hist_rows:
         by[(r["hour"], r["place"])] = r
     out = {}
     for pid in place_ids:
-        e_cams, e_pers = [], []
+        e_cams, e_pers, e_est = [], [], []
         for (hour, p), r in by.items():
             if p != pid or r["obs_pm"] in ("", None):
                 continue
@@ -465,9 +471,12 @@ def accuracy(hist_rows, place_ids):
                 e_cams.append(abs(float(pr["cams_plus24"]) - obs))
             if pr.get("obs_pm") not in ("", None):
                 e_pers.append(abs(float(pr["obs_pm"]) - obs))
+            if pr.get("est_plus24") not in ("", None):
+                e_est.append(abs(float(pr["est_plus24"]) - obs))
         if e_cams:
             out[pid] = {"n": len(e_cams), "cams": round(sum(e_cams) / len(e_cams), 1),
-                        "persist": round(sum(e_pers) / len(e_pers), 1) if e_pers else None}
+                        "persist": round(sum(e_pers) / len(e_pers), 1) if e_pers else None,
+                        "est": round(sum(e_est) / len(e_est), 1) if e_est else None, "n_est": len(e_est)}
     return out
 
 
@@ -576,7 +585,7 @@ def main():
     # history + forecast check
     os.makedirs(DATA_DIR, exist_ok=True)
     hist_path = os.path.join(DATA_DIR, "history.csv")
-    fields = ["hour", "place", "obs_pm", "obs_station", "cams_now", "cams_plus24", "score_now", "score_plus24"]
+    fields = ["hour", "place", "obs_pm", "obs_station", "cams_now", "cams_plus24", "score_now", "score_plus24", "est_plus24"]
     rows = []
     if os.path.exists(hist_path):
         rows = list(csv.DictReader(open(hist_path)))
@@ -586,12 +595,6 @@ def main():
         o = p["obs"] or {}
         rows.append({"hour": hour_iso, "place": p["id"], "obs_pm": o.get("pm", ""), "obs_station": o.get("station", ""),
                      "cams_now": p["pm"][24], "cams_plus24": p["pm"][48], "score_now": p["sc"][24], "score_plus24": p["sc"][48]})
-    cutoff = (datetime.fromtimestamp(now_hour, timezone.utc).replace(tzinfo=None) - timedelta(days=90)).isoformat()
-    rows = [r for r in rows if r["hour"] >= cutoff]
-    with open(hist_path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(rows)
-    acc = accuracy(rows[-24 * 15 * len(places):], [p["id"] for p in places])
-
     # station readings for the last 24 hours, aligned with the forecast series (index 0 = 24 h ago, 24 = now)
     start = datetime.fromtimestamp(now_hour, timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
     for p in out_places:
@@ -618,6 +621,18 @@ def main():
             else:
                 est.append(None if v is None else round(max(0.0, v + gap * math.exp(-(k - 24) / 12)), 1))
         p["est"] = est
+
+    # record our own 24-hour-ahead estimate so the forecast check can score it
+    est48 = {p["id"]: p["est"][48] if len(p["est"]) > 48 else None for p in out_places}
+    for r in rows:
+        if r["hour"] == hour_iso:
+            r["est_plus24"] = est48.get(r["place"])
+    cutoff = (datetime.fromtimestamp(now_hour, timezone.utc).replace(tzinfo=None) - timedelta(days=90)).isoformat()
+    rows = [r for r in rows if r["hour"] >= cutoff]
+    with open(hist_path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields, restval="", extrasaction="ignore"); w.writeheader(); w.writerows(rows)
+    acc = accuracy(rows[-24 * 15 * len(places):], [p["id"] for p in places])
+
 
     latest = {
         "meta": {"generated": datetime.fromtimestamp(now, timezone.utc).isoformat().replace("+00:00", "Z"),

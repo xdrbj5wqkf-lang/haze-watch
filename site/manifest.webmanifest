@@ -1,13 +1,13 @@
 {
   "name": "Haze Watch",
   "short_name": "Haze Watch",
-  "description": "72-hour haze outlook for Malaysia: fire hotspots, CAMS PM2.5 and smoke tracked along the wind.",
+  "description": "Is the air OK today? Haze levels for our places, the best time to play outside, and where the smoke is coming from.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#eef1f0",
-  "theme_color": "#2f6f86",
+  "background_color": "#fff6e9",
+  "theme_color": "#fff6e9",
   "icons": [
     {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
     {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},

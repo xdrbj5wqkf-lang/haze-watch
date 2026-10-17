@@ -1,6 +1,6 @@
 # Haze Watch
 
-A 72-hour haze outlook for your iPhone and iPad. Every hour a free GitHub job pulls fire hotspots (NASA FIRMS), the wind, rain and PM2.5 forecast (Open-Meteo / CAMS) and live station readings (WAQI). It tracks smoke from each fire cluster along the wind and publishes the result as a web app you add to your Home Screen. A Telegram bot sends a morning digest and a heads-up before a place turns unhealthy.
+A 72-hour haze outlook for our places, built for iPhone and iPad. Every hour a free GitHub job pulls fire hotspots (NASA FIRMS), the wind, rain and PM2.5 forecast (Open-Meteo / CAMS) and live station readings (WAQI). It tracks smoke from each fire cluster along the wind and publishes the result as a web app you add to your Home Screen.
 
 ## Set it up (about 15 minutes, no terminal needed)
 
@@ -8,8 +8,7 @@ A 72-hour haze outlook for your iPhone and iPad. Every hour a free GitHub job pu
 2. **Upload the files.** Unzip `haze-watch.zip` on your Mac. In Finder press **Cmd + Shift + .** so the hidden `.github` folder shows. On the new repository page click **uploading an existing file**, drag in everything inside the unzipped folder (including `.github`), then click **Commit changes**.
 3. **Add your keys.** Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
    - `WAQI_TOKEN`: your WAQI token (live station readings and the forecast check)
-   - `TELEGRAM_BOT_TOKEN`: the token BotFather gave you
-   - `TELEGRAM_CHAT_ID`: your numeric Telegram ID. Send your bot any message first, then message **@userinfobot**, which replies with your ID.
+   - Optional, and off by default: `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` switch on a morning digest and early warnings by Telegram.
 
    The FIRMS key is not needed: the job uses NASA's keyless regional files.
 4. **Switch on the web app.** **Settings → Pages → Build and deployment → Source: GitHub Actions.**
@@ -28,14 +27,13 @@ Edit `config.json` on GitHub and change the `places` list (name, latitude, longi
 | When | What |
 | --- | --- |
 | Every hour at about :07 | Fetch fires, forecast and stations; run the smoke model; publish the app |
-| 6am Malaysia time | Telegram digest for every place |
-| Any hour outside 10pm–6am | Heads-up if a place is forecast to cross API 100 within 24 hours (at most once per 12 hours per place) |
+| 6am Malaysia time | Telegram digest, only if the Telegram secrets are set |
 
-The `data/history.csv` file keeps 90 days of readings and forecasts. The app's **Forecast check** compares the 24-hour-ahead CAMS forecast with station readings and with simply assuming tomorrow looks like today.
+The `data/history.csv` file keeps 90 days of readings and forecasts. The app's **How good are our guesses?** card compares three 24-hour-ahead guesses with what the stations then read: our best estimate, the CAMS forecast alone, and simply assuming tomorrow looks like today.
 
 ## Things to know
 
-- The PM2.5-to-Malaysian-API conversion uses approximate breakpoints (15, 35, 150, 250 µg/m³ for API 50, 100, 200, 300). Confirm them against DOE guidance before relying on the bands.
+- PM2.5 is converted to the Malaysian API with DOE's own breakpoints (12, 75.5, 150.4, 250.4, 350.4 and 500.4 µg/m³ for API 50 to 500; DOE "API Calculation" guidance). DOE applies them to a 24-hour average; the app applies them to the latest hourly reading, so it reacts faster than APIMS. The app also shows the 24-hour average once a day of readings has built up.
 - WAQI publishes US AQI rather than concentrations; the job converts back using the US EPA pre-2024 table, which WAQI has historically used. Check this too.
 - The smoke tracking is uncalibrated. Read it for direction and timing until the forecast check has a few weeks of data.
 - GitHub pauses scheduled jobs on repositories with no activity for 60 days. The hourly history commits should count as activity; if it ever stops, press **Run workflow** once.
