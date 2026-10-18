@@ -277,12 +277,21 @@ details.card .ans p{margin:0 0 10px}
 .lb.editing:active{transform:none;box-shadow:3px 3px 0 var(--shc)}
 .yours{display:inline-block;font-size:11px;font-weight:800;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:2px}
 .restore{margin-top:14px;display:grid;gap:8px}
+.yours.here{background:var(--hot)}
+.follow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:3px 3px 0 var(--shc);font-weight:700}
+.follow small{display:block;font-weight:600;color:var(--ink2);font-size:12.5px}
+.switch{position:relative;flex:0 0 52px;height:30px;border-radius:999px;border:var(--bw) solid var(--edge);background:var(--soft);padding:0}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .2s}
+.switch[aria-checked=true]{background:var(--b1)}
+.switch[aria-checked=true]::after{transform:translateX(22px)}
+.savehere{display:inline-flex;align-items:center;gap:5px;background:#17142a;color:#fff;border:2px solid #17142a;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:800}
 .restore .row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px dashed var(--grid);border-radius:16px;padding:8px 8px 8px 14px;font-weight:700}
 .scrim{position:fixed;inset:0;background:rgba(10,8,20,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
 .scrim.on{opacity:1;pointer-events:auto}
 .sheet{position:fixed;left:50%;bottom:0;z-index:41;width:min(100%,520px);max-height:88vh;overflow:auto;transform:translate(-50%,105%);transition:transform .35s cubic-bezier(.2,1.1,.3,1);
   background:var(--paper);border:var(--bw) solid var(--edge);border-bottom:0;border-radius:26px 26px 0 0;padding:10px 18px calc(22px + var(--safe-b));box-shadow:0 -4px 0 var(--accent)}
-.sheet.on{transform:translate(-50%,0)}
+.sheet{visibility:hidden}
+.sheet.on{transform:translate(-50%,0);visibility:visible}
 .grab{width:44px;height:5px;border-radius:9px;background:var(--grid);margin:0 auto 10px}
 .sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .sh-head h2{margin:0;font-size:21px}
@@ -359,6 +368,7 @@ details.card .ans p{margin:0 0 10px}
     <div class="tools"><button type="button" class="sbtn primary" data-add>＋ Add a place</button><button type="button" class="sbtn" data-edit>✏️ Edit</button></div>
     <div class="lbs" id="sideList"></div>
     <div class="restore" id="sideRestore"></div>
+    <div class="follow"><span>📍 Open on where I am<small>Each time the app opens or refreshes</small></span><button type="button" class="switch" role="switch" data-follow aria-checked="true" aria-label="Open on where I am"></button></div>
   </aside>
 
   <main class="main">
@@ -392,6 +402,7 @@ details.card .ans p{margin:0 0 10px}
         <div class="tools"><button type="button" class="sbtn primary" data-add>＋ Add</button><button type="button" class="sbtn" data-edit>✏️ Edit</button></div></div>
       <div class="lbs" id="placeList"></div>
       <div class="restore" id="placeRestore"></div>
+      <div class="follow"><span>📍 Open on where I am<small>Each time the app opens or refreshes</small></span><button type="button" class="switch" role="switch" data-follow aria-checked="true" aria-label="Open on where I am"></button></div>
     </section>
 
     <section class="view" id="v-faq" aria-label="Questions">
@@ -547,7 +558,7 @@ function bestWin(p, x){
 function heroHTML(p, a){
   const b = BANDS[a.nb], tr = trend(p, a);
   return '<article class="card hero span2" id="hero" style="--hc:' + b.c + '">' +
-    '<div class="hero-top"><div><div class="hplace">' + esc(p.name) + '</div><div class="hwhen">Air right now · ' + hh(NOW) + '</div></div><button type="button" class="ibtn" data-go="places" aria-label="Switch place">⇄</button></div>' +
+    '<div class="hero-top"><div><div class="hplace">' + esc(p.name) + '</div><div class="hwhen">' + (p.id === HERE_ID ? '📍 You’re here · ' : '') + 'Air right now · ' + hh(NOW) + (p.here ? ' · <button type="button" class="savehere" data-savehere>＋ Save place</button>' : '') + '</div></div><button type="button" class="ibtn" data-go="places" aria-label="Switch place">⇄</button></div>' +
     '<div class="hero-mid"><button type="button" class="puffbtn" id="puffBtn" aria-label="Tap Puff for a tip">' + puff(a.nb, 'big') + '<span class="bubble" id="bubble"></span></button>' +
     '<div class="hnum"><div class="num' + (Math.round(a.nowApi) >= 100 ? ' n3' : '') + '" id="heroNum">' + Math.round(a.nowApi) + '</div><div class="unit">API</div><span class="sticker">' + b.name + '</span></div></div>' +
     '<p class="tag">' + b.tag + '</p>' + (tr ? '<p class="trend"><b>' + tr.ic + '</b>' + esc(tr.t) + '</p>' : '') +
@@ -721,7 +732,7 @@ function swipeHero(){
 
 /* ================= places: chips + leaderboard ================= */
 function renderChips(){
-  $('#chips').innerHTML = D.places.map((p, i) => '<button type="button" class="chip' + (i === SEL ? ' on' : '') + '" data-pick="' + i + '" aria-pressed="' + (i === SEL) + '"><span class="d" style="background:' + BANDS[A[i].nb].c + '">' + Math.round(A[i].nowApi) + '</span>' + esc(p.name) + '</button>').join('') + '<button type="button" class="chip add" data-add aria-label="Add a place">＋</button>';
+  $('#chips').innerHTML = D.places.map((p, i) => '<button type="button" class="chip' + (i === SEL ? ' on' : '') + '" data-pick="' + i + '" aria-pressed="' + (i === SEL) + '"><span class="d" style="background:' + BANDS[A[i].nb].c + '">' + Math.round(A[i].nowApi) + '</span>' + (p.id === HERE_ID ? '📍 ' : '') + esc(p.name) + '</button>').join('') + '<button type="button" class="chip add" data-add aria-label="Add a place">＋</button>';
   const on = $('#chips .chip.on'); if (on && on.scrollIntoView) on.scrollIntoView({inline:'center', block:'nearest', behavior: REDUCED ? 'auto' : 'smooth'});
 }
 let EDIT = false;
@@ -729,8 +740,8 @@ function lbHTML(){
   const order = D.places.map((p, i) => i).sort((x, y) => A[x].nowApi - A[y].nowApi);
   return order.map((i, r) => { const p = D.places[i], a = A[i], b = BANDS[a.nb];
     const pk = a.peakApi > a.nowApi + 5 ? 'Up to ' + Math.round(a.peakApi) + ' around ' + when(idx(a.peakK)) : 'Steady or easing';
-    const tag = p.custom ? '<span class="yours">yours</span>' : '';
-    const end = EDIT ? '<button type="button" class="del" data-del="' + esc(p.id) + '" aria-label="Remove ' + esc(p.name) + '">🗑️</button>' : '<span class="vl" style="background:' + b.c + '">' + Math.round(a.nowApi) + '</span>';
+    const tag = (p.id === HERE_ID ? '<span class="yours here">you’re here</span>' : '') + (p.custom ? '<span class="yours">yours</span>' : '');
+    const end = EDIT && p.here ? '' : EDIT ? '<button type="button" class="del" data-del="' + esc(p.id) + '" aria-label="Remove ' + esc(p.name) + '">🗑️</button>' : '<span class="vl" style="background:' + b.c + '">' + Math.round(a.nowApi) + '</span>';
     return '<div role="button" tabindex="0" class="lb' + (i === SEL && !EDIT ? ' sel' : '') + (EDIT ? ' editing' : '') + '"' + (EDIT ? '' : ' data-pick="' + i + '"') + '><span class="rk">' + (r + 1) + '</span><span class="mini">' + puff(a.nb, '') + '</span><span class="tx"><span class="nm">' + esc(p.name) + tag + (r === 0 && !EDIT ? ' <span class="crown">👑</span>' : '') + '</span><span class="ds">' + (EDIT ? (p.custom ? 'Added on this device' : 'Main place') : b.name + ' · ' + esc(pk)) + '</span></span>' + end + '</div>'; }).join('') +
     (PEND.length ? PEND.map(c => '<div class="lb editing"><span class="rk">…</span><span class="mini">' + puff(1, '') + '</span><span class="tx"><span class="nm">' + esc(c.name) + '<span class="yours">yours</span></span><span class="ds">' + (c.fail ? 'Couldn’t load. Pull down to retry.' : 'Loading the air here…') + '</span></span>' + (EDIT ? '<button type="button" class="del" data-del="' + esc(c.id) + '" aria-label="Remove ' + esc(c.name) + '">🗑️</button>' : '') + '</div>').join('') : '');
 }
@@ -868,6 +879,7 @@ function faqHTML(){
     q('Why might it differ from the APIMS app?', '<p>The “now” number is DOE’s own API from the nearest station, so it should match APIMS for that station. It can differ a little when two stations are about equally close: then we <b>blend</b> them, with the closer one counting more. We update every hour, so APIMS may be one reading ahead.</p><p>We sometimes use a <b>local sensor</b> right next to the place, but only if it agrees with the DOE stations. With no station nearby we use the forecast.</p><p>For the official number, check <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>') +
     q('How do you predict the haze?', '<p>Every hour a robot (well, a script 🤖) does four things:</p><p>1. Grabs every fire NASA’s satellites spotted in the last two days.<br>2. Gets the wind and rain forecast.<br>3. Pushes pretend smoke from each fire along the wind, to see where it ends up.<br>4. Starts from the real reading near each place and blends into Copernicus’s air forecast.</p><p>The smoke tracking is rough, so trust it for direction and timing more than exact numbers.</p>') +
     q('How does “Can I…?” decide?', '<p>Hard exercise (sport, running, golf) gets ✅ up to API 50 and ⚠️ up to 100. Hanging out or walking gets ✅ up to 100 and ⚠️ up to 200. Windows open up to 50.</p><p>We look at the worst hour in the time you’d be out, and suggest the cleanest slot from 6am to 8pm today or tomorrow. If you have asthma or a cough, be one step more careful.</p>') +
+    q('Why does it jump to where I am?', '<p>Each time you open or refresh the app, it checks where your phone is. If you’re at one of your places, it opens on that one (📍). If you’re somewhere new, it works out the air right there and shows it first, with a <b>＋ Save place</b> button if you want to keep it.</p><p>Your location stays on your phone; the forecast services only get it rounded to about 1 km. Turn this off on the Places tab: <b>📍 Open on where I am</b>.</p>') +
     q('Can I add my own places?', '<p>Yes. Tap <b>＋</b> next to the places at the top, or <b>＋ Add</b> on the Places tab. Search for somewhere or use where you are now, then give it a name.</p><p>To remove one, tap <b>✏️ Edit</b> on the Places tab, then 🗑️. Removing one of the main places only hides it on your device, and you can bring it back from the same screen.</p><p>Places you add stay on your device, not on the website. They get the same forecast and nearby station readings, but not the smoke-source breakdown or the 24-hour reading history.</p>') +
     q('Do masks help?', '<p>Normal cloth or surgical masks don’t stop haze very well. An <b>N95</b> or <b>KF94</b> that fits snugly does. Indoors, keep windows shut and run an air purifier.</p>') +
     q('Where does the data come from?', '<p>Fires: NASA FIRMS (VIIRS satellites). Wind, rain and PM2.5 forecast: Open-Meteo with Copernicus CAMS data (CC BY 4.0). Live readings: DOE stations and local sensors via WAQI. Map: Natural Earth.</p><p>For DOE stations, WAQI passes on DOE’s official API. Local sensors report on the US scale, which we convert, so treat small differences from them with a pinch of salt.</p>') +
@@ -914,7 +926,8 @@ const inRegion = x => x.lat >= -7 && x.lat <= 9 && x.lon >= 94 && x.lon <= 121;
 const savedSel = () => { try { return localStorage.getItem('hw-place'); } catch (e) { return null; } };
 function assemble(){
   const hid = store.get('hw-hidden', []);
-  D.places = D.base.filter(p => !hid.includes(p.id)).concat(CUSTOM);
+  const here = HERE && HERE.gen === D.meta.generated ? [HERE] : [];
+  D.places = here.concat(D.base.filter(p => !hid.includes(p.id)), CUSTOM);
   if (!D.places.length){ store.set('hw-hidden', []); D.places = D.base.concat(CUSTOM); }
   A = D.places.map(analyse);
   const i = D.places.findIndex(p => p.id === savedSel()); SEL = i >= 0 ? i : 0;
@@ -975,6 +988,54 @@ async function loadCustom(list){
     renderPlaces(); toast('Couldn’t load ' + (list.length === 1 ? list[0].name : 'your added places') + '. Pull down to retry.'); return false;
   }
 }
+/* ---------- open on where I am ---------- */
+let HERE = null, HERE_ID = null, locBusy = false, locWarned = false;
+const following = () => store.get('hw-follow', true);
+function locate(){
+  return new Promise(res => { if (!navigator.geolocation) return res(null);
+    navigator.geolocation.getCurrentPosition(p => res({lat:p.coords.latitude, lon:p.coords.longitude}), () => res(null), {timeout:10000, maximumAge:120000}); });
+}
+function selectId(id){ const i = D.places.findIndex(p => p.id === id); if (i >= 0){ SEL = i; try { localStorage.setItem('hw-place', id); } catch (e) {} } }
+async function goHere(){
+  if (!D || locBusy || !following()) return;
+  locBusy = true;
+  try {
+    const pos = await locate();
+    if (!pos){ if (!locWarned){ locWarned = true; toast('Location is off, so showing your last place'); } return; }
+    if (!inRegion(pos)){ toast('You’re outside Haze Watch’s area'); return; }
+    // at (or next to) a place we already have?
+    let best = null, bd = 1e9;
+    D.places.forEach(p => { if (p.here) return; const d = kmB(pos, p); if (d < bd){ bd = d; best = p; } });
+    if (best && bd <= 1.5){
+      HERE = null; HERE_ID = best.id; assemble(); selectId(best.id); mapBuilt = ''; renderAll(0);
+      toast('📍 You’re at ' + best.name); return;
+    }
+    // somewhere new: build a reading for this spot (rounded to about 1 km before it leaves the phone)
+    const r = {lat:Math.round(pos.lat*100)/100, lon:Math.round(pos.lon*100)/100}, gen = D.meta.generated;
+    if (!(HERE && HERE.gen === gen && HERE.lat === r.lat && HERE.lon === r.lon)){
+      let name = 'Where I am';
+      try { const g = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat=' + r.lat + '&lon=' + r.lon).then(x => x.json()), ad = g.address || {};
+        name = ad.suburb || ad.neighbourhood || ad.quarter || ad.village || ad.town || ad.city || name; } catch (e) {}
+      const [b] = await buildCustom([{id:'here', name, lat:r.lat, lon:r.lon}]);
+      if (D.meta.generated !== gen) return;
+      HERE = Object.assign(b, {here:true, custom:false, gen});
+    }
+    HERE_ID = 'here'; assemble(); selectId('here'); mapBuilt = ''; renderAll(0);
+    toast('📍 Showing where you are: ' + HERE.name);
+  } catch (e) { toast('Couldn’t get the air for where you are'); }
+  finally { locBusy = false; }
+}
+function saveHere(){
+  if (!HERE) return;
+  const saved = store.get('hw-custom', []);
+  if (saved.length >= MAX_CUSTOM){ toast('Max ' + MAX_CUSTOM + ' added places. Remove one first.'); return; }
+  const c = {id:'u' + Date.now().toString(36), name:HERE.name, lat:HERE.lat, lon:HERE.lon};
+  saved.push(c); store.set('hw-custom', saved);
+  CUSTOM.push(Object.assign({}, HERE, c, {here:false, custom:true}));
+  store.set('hw-cdata', {now:D.meta.nowISO, gen:D.meta.generated, places:CUSTOM});
+  HERE = null; HERE_ID = c.id; assemble(); selectId(c.id); mapBuilt = ''; renderAll(0); toast(c.name + ' saved ✨');
+}
+function renderFollow(){ $$('[data-follow]').forEach(b => b.setAttribute('aria-checked', following())); }
 function openAdd(){
   if (store.get('hw-custom', []).length >= MAX_CUSTOM){ toast('Max ' + MAX_CUSTOM + ' added places. Remove one first.'); return; }
   $('#results').innerHTML = ''; $('#q').value = ''; FOUND = []; PICK = null;
@@ -1044,6 +1105,8 @@ document.addEventListener('click', e => {
   if (t.closest('#addGo')){ addPlace(); return; }
   const fd = t.closest('[data-found]'); if (fd){ confirmPlace(FOUND[+fd.dataset.found]); return; }
   if (t.closest('[data-edit]')){ EDIT = !EDIT; renderPlaces(); return; }
+  if (t.closest('[data-savehere]')){ saveHere(); return; }
+  if (t.closest('[data-follow]')){ const on = !following(); store.set('hw-follow', on); renderFollow(); if (on) goHere(); else { HERE = null; HERE_ID = null; assemble(); mapBuilt = ''; renderAll(0); } return; }
   const del = t.closest('[data-del]'); if (del){ removePlace(del.dataset.del); return; }
   const un = t.closest('[data-unhide]'); if (un){ unhide(un.dataset.unhide); return; }
   const pick = e.target.closest('[data-pick]'); if (pick){ select(+pick.dataset.pick, 0); if (VIEW === 'places') setView('now'); return; }
@@ -1056,7 +1119,7 @@ $('#t').addEventListener('input', e => { setPlay(false); drawFrame(+e.target.val
 $('#upd').addEventListener('click', () => load(true));
 let rsT = 0; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (D && VIEW === 'now') drawCompare(); }, 150); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdd(); if (e.key === 'Enter' && e.target.matches('.lb[data-pick]')) e.target.click(); });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && D && Date.now() - Date.parse(D.meta.generated) > 50*60e3) load(true); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible' || !D) return; if (Date.now() - Date.parse(D.meta.generated) > 50*60e3) load(true); else goHere(); });
 
 // pull down to refresh (the Home Screen app has no browser refresh)
 (function(){ const ptr = $('#ptr'); let y0 = null, dy = 0;
@@ -1080,7 +1143,8 @@ async function load(force){
       GEO ? Promise.resolve(GEO) : fetch('geo.json').then(r => r.json())]);
     const fresh = !D || d.meta.generated !== D.meta.generated;
     D = d; GEO = g; render();
-    if (force) toast(fresh ? 'Fresh air data 🌬️' : 'Already up to date ✨');
+    if (force && !following()) toast(fresh ? 'Fresh air data 🌬️' : 'Already up to date ✨');
+    goHere();
   } catch (e) {
     if (!D) $('#loading').innerHTML = puff(2, 'big') + '<h2 style="justify-content:center">Couldn’t load the air data</h2><p class="sub">Check your connection, then pull down to try again.</p>';
     else toast('No connection. Showing the last update.');
@@ -1088,7 +1152,7 @@ async function load(force){
 }
 $$('[data-logo]').forEach(el => el.innerHTML = puff(0, ''));
 $('#loading').innerHTML = puff(1, 'big') + '<h2 style="justify-content:center">Sniffing the air…</h2>';
-$('#faq').innerHTML = faqHTML();
+$('#faq').innerHTML = faqHTML(); renderFollow();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 load(false);
 </script>
