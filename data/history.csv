@@ -108,3 +108,11 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-10-18T19:00:00,bt,111.7,Lorong Timur,108,41,21,41,42.4
 2026-10-18T19:00:00,ah,118.9,Cheras + Batu Muda,108,41,21,75,45.0
 2026-10-18T19:00:00,gis,120.8,Petaling Jaya + Batu Muda + Cheras,108,41,31,40,45.7
+2026-10-18T21:00:00,bd,121.0,Petaling Jaya + Batu Muda + Cheras,115,34,57,110,36.2
+2026-10-18T21:00:00,s16,121.2,Petaling Jaya + Cheras,115,34,57,101,36.3
+2026-10-18T21:00:00,klgcc,121.9,Petaling Jaya,115,34,57,100,36.5
+2026-10-18T21:00:00,saujana,119.4,Shah Alam + Petaling Jaya,115,34,57,74,35.6
+2026-10-18T21:00:00,mk,121.0,Batu Muda + Petaling Jaya + Cheras,115,34,57,110,36.2
+2026-10-18T21:00:00,bt,96.2,Lorong Timur,115,34,57,100,27.1
+2026-10-18T21:00:00,ah,119.2,Cheras + Batu Muda,115,34,55,100,35.5
+2026-10-18T21:00:00,gis,121.1,Petaling Jaya + Batu Muda + Cheras,115,34,57,110,36.2
