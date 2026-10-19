@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Haze Watch</title>
-<meta name="description" content="Is the air OK today? Haze levels for our places, the best time to play outside, and where the smoke is coming from.">
+<meta name="description" content="Is the air OK today? Haze levels for our places, the best time for your sport, and where the smoke is coming from.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -12,159 +12,171 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Haze Watch">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#fff6e9" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#14111f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#3edc8e" id="themeColor">
 <meta name="format-detection" content="telephone=no">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/climate-crisis.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-/* Haze Watch: sticker style. Chunky outlines, hard shadows, one bright colour per air band (DOE colours).
-   iPhone: place chips on top, tab bar at the bottom. iPad (>= 900px): leaderboard sidebar, two-column cards. */
+/* Haze Watch. Design language: the screen is the air. The whole background takes the DOE colour of the
+   reading, the big number is set in Climate Crisis, whose letters melt as its YEAR axis rises (we map the
+   air band onto it), and everything else stays quiet so the one answer reads at a glance. */
+@font-face{font-family:'Climate Crisis';src:url(fonts/climate-crisis.woff2) format('woff2-variations'),url(fonts/climate-crisis.woff2) format('woff2');font-display:swap}
+@font-face{font-family:'Figtree';src:url(fonts/figtree.woff2) format('woff2-variations'),url(fonts/figtree.woff2) format('woff2');font-weight:300 900;font-display:swap}
 :root{
-  --paper:#fff6e9; --card:#ffffff; --ink:#17142a; --ink2:#5d5873; --edge:#17142a; --shc:#17142a; --grid:rgba(23,20,42,.14); --soft:rgba(23,20,42,.06);
-  --b0:#4ea8ff; --b1:#38d98a; --b2:#ffd23f; --b3:#ff8a3d; --b4:#ff4f6d;
-  --yes:#b9f5d0; --mid:#ffe9a0; --no:#ffc2cc;
-  --accent:#7b5cff; --hot:#ff6a3d;
-  --r:22px; --bw:2.5px; --sh:4px 4px 0 var(--shc);
-  --fd:'Unbounded', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+  --b0:#57b6ff; --b1:#3edc8e; --b2:#ffd23f; --b3:#ff8a3d; --b4:#ff4f6d;
+  --ink:#17142a; --ink2:rgba(23,20,42,.7); --line:rgba(23,20,42,.14); --soft:rgba(23,20,42,.06); --grid:rgba(23,20,42,.14);
+  --panel:rgba(255,255,255,.66); --card:#ffffff; --paper:#fbf9ff; --edge:#17142a; --shc:#17142a;
+  --yes:#c6f6d9; --mid:#ffeaa0; --no:#ffcad3; --accent:#5b3df5; --hot:#ff6a3d;
+  --bandc:var(--b1); --field:var(--bandc); --numc:var(--ink); --yr:1979;
+  --fd:'Climate Crisis', 'Figtree', system-ui, sans-serif;
   --fb:'Figtree', -apple-system, system-ui, 'Segoe UI', sans-serif;
   --safe-b:env(safe-area-inset-bottom, 0px); --safe-t:env(safe-area-inset-top, 0px);
+  --r:24px;
   color-scheme:light dark;
 }
 @media (prefers-color-scheme: dark){ :root{
-  --paper:#14111f; --card:#221d33; --ink:#f5f1ff; --ink2:#b7afcf; --edge:#06050b; --shc:#06050b; --grid:rgba(245,241,255,.14); --soft:rgba(245,241,255,.06);
-  --yes:#1f5a3c; --mid:#5c4b12; --no:#64232f; --accent:#a48dff; } }
+  --ink:#f6f2ff; --ink2:rgba(246,242,255,.72); --line:rgba(246,242,255,.16); --soft:rgba(255,255,255,.07); --grid:rgba(246,242,255,.14);
+  --panel:rgba(255,255,255,.08); --card:#221d33; --paper:#18142a; --edge:#05040a; --shc:#05040a;
+  --yes:#1d553a; --mid:#5a4912; --no:#62222e; --accent:#a996ff;
+  --field:color-mix(in srgb, var(--bandc) 24%, #100d1b); --numc:var(--bandc); } }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:var(--paper)}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--fb);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased;overflow-x:hidden;
-  --bandc:var(--b1)}
+html{background:var(--field);transition:background-color .9s}
+body{margin:0;min-height:100vh;background:var(--field);color:var(--ink);font-family:var(--fb);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background-color .9s}
 button{font:inherit;color:inherit;cursor:pointer}
-a{color:var(--accent);font-weight:700}
-h1,h2,h3{font-family:var(--fd);letter-spacing:-.01em}
+a{color:inherit;font-weight:700;text-decoration-thickness:2px;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:12px}
+h1,h2,h3{margin:0}
 
-/* animated background blobs tinted by the band */
-.bgfx{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-.bgfx i{position:absolute;width:70vmax;height:70vmax;border-radius:50%;background:var(--bandc);opacity:.22;filter:blur(60px);transition:background 1s}
-.bgfx i:nth-child(1){left:-30vmax;top:-30vmax;animation:drift1 22s ease-in-out infinite alternate}
-.bgfx i:nth-child(2){right:-35vmax;top:20vh;opacity:.14;background:var(--accent);animation:drift2 26s ease-in-out infinite alternate}
-.bgfx i:nth-child(3){left:10vw;bottom:-45vmax;opacity:.16;animation:drift1 30s ease-in-out infinite alternate-reverse}
-.bgfx .hazefx{position:absolute;inset:-20%;background:radial-gradient(closest-side,rgba(196,160,120,.55),transparent) 0 0/60% 50%,radial-gradient(closest-side,rgba(196,160,120,.45),transparent) 40% 60%/70% 60%;
-  background-repeat:no-repeat;opacity:0;transition:opacity 1.2s;animation:hazemove 40s linear infinite alternate}
-@keyframes drift1{to{transform:translate(12vw,10vh) scale(1.1)}}
-@keyframes drift2{to{transform:translate(-14vw,-8vh) scale(.92)}}
-@keyframes hazemove{to{transform:translate(12%,6%)}}
+/* the field: haze drifts over the colour when the air is bad */
+.field{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.field .hazefx{position:absolute;inset:-25%;opacity:0;transition:opacity 1.2s;
+  background:radial-gradient(closest-side,rgba(205,170,130,.6),transparent) 10% 20%/55% 45% no-repeat,radial-gradient(closest-side,rgba(205,170,130,.5),transparent) 70% 55%/65% 55% no-repeat,radial-gradient(closest-side,rgba(205,170,130,.45),transparent) 30% 90%/60% 45% no-repeat;
+  animation:hazemove 38s linear infinite alternate}
+@keyframes hazemove{to{transform:translate(10%,5%)}}
 
 /* layout */
-.app{max-width:640px;margin:0 auto;padding:calc(var(--safe-t) + 10px) 16px calc(110px + var(--safe-b))}
+.app{max-width:620px;margin:0 auto;padding:calc(var(--safe-t) + 10px) 18px calc(112px + var(--safe-b))}
 .side{display:none}
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px}
-.brand{display:flex;align-items:center;gap:8px;font-family:var(--fd);font-weight:800;font-size:20px;letter-spacing:-.02em}
-.brand .logo{width:38px;height:30px;display:block}
-.brand span{color:var(--accent)}
-.upd{display:flex;align-items:center;gap:6px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;box-shadow:2px 2px 0 var(--shc)}
-.upd.old{background:var(--mid)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 6px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:18px;letter-spacing:-.03em}
+.brand .logo{width:34px;height:26px;display:block}
+.upd{display:flex;align-items:center;gap:6px;border:0;background:var(--panel);border-radius:999px;padding:7px 12px;font-weight:700;font-size:13px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.upd.old{background:var(--ink);color:var(--field)}
 .upd svg{width:14px;height:14px}
 .upd.spin svg{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* place chips */
-.chips{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;margin:0 -16px 14px;padding:4px 16px 8px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;scroll-snap-align:center;display:flex;align-items:center;gap:7px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:999px;padding:7px 13px 7px 9px;font-weight:700;font-size:14px;white-space:nowrap;box-shadow:2px 2px 0 var(--shc);transition:transform .15s}
-.chip .d{min-width:24px;height:24px;padding:0 4px;border-radius:999px;border:2px solid var(--edge);display:grid;place-items:center;font-size:10px;font-weight:800;color:#17142a;font-family:var(--fd)}
-.chip.on{background:var(--ink);color:var(--paper)}
-.chip:active{transform:translate(2px,2px);box-shadow:none}
-
-/* views */
 .view{display:none}
-.view.on{display:block;animation:viewin .35s ease-out}
-@keyframes viewin{from{opacity:0;transform:translateY(8px)}}
-.vh{font-size:26px;font-weight:800;margin:6px 0 2px}
-.vsub{color:var(--ink2);margin:0 0 14px;font-weight:500}
-.grid{display:grid;grid-template-columns:1fr;gap:16px}
+.view.on{display:block}
+.vh{font-size:34px;line-height:1;font-weight:900;margin:14px 0 6px;letter-spacing:-.035em}
+.vsub{color:var(--ink2);margin:0 0 16px;font-weight:600}
 
-/* cards */
-.card{background:var(--card);border:var(--bw) solid var(--edge);border-radius:var(--r);box-shadow:var(--sh);padding:16px;position:relative;min-width:0}
-.card h2{font-size:17px;font-weight:700;margin:0 0 4px;display:flex;align-items:center;gap:8px}
-.card h2 .em{font-size:20px;line-height:1}
-.sub{color:var(--ink2);font-size:14.5px;margin:0 0 12px;font-weight:500}
-.tiny{color:var(--ink2);font-size:12.5px;margin:10px 0 0}
-.pop{animation:popin .45s cubic-bezier(.2,1.4,.4,1) both}
-@keyframes popin{from{opacity:0;transform:translateY(14px) scale(.97)}}
-.btn{display:inline-flex;align-items:center;gap:8px;border:var(--bw) solid var(--edge);background:var(--ink);color:var(--paper);border-radius:999px;padding:10px 16px;font-weight:800;font-size:14px;box-shadow:3px 3px 0 var(--accent);margin-top:12px}
-.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--accent)}
-
-/* banners */
-.banner{display:flex;gap:12px;align-items:flex-start;border:var(--bw) solid var(--edge);border-radius:18px;padding:10px 14px;margin:0;background:var(--mid);box-shadow:3px 3px 0 var(--shc);font-size:14.5px}
-.banner.smoke{background:var(--no)}
-.banner .e{font-size:22px;line-height:1.1}
-.banners{display:grid;gap:10px}
-.banner b{display:block}
-
-/* hero */
-.hero{background:var(--hc);color:#17142a;overflow:hidden;padding:18px 18px 16px}
-.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.35) 1.4px,transparent 1.6px);background-size:14px 14px;opacity:.6;pointer-events:none;-webkit-mask-image:linear-gradient(135deg,#000,transparent 65%);mask-image:linear-gradient(135deg,#000,transparent 65%)}
-.hero > *{position:relative}
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.hplace{font-family:var(--fd);font-weight:800;font-size:23px;line-height:1.1;letter-spacing:-.02em}
-.hwhen{font-weight:700;font-size:13.5px;opacity:.75;margin-top:3px}
-.ibtn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:var(--bw) solid #17142a;background:#fff;color:#17142a;font-size:18px;font-weight:800;box-shadow:2px 2px 0 #17142a}
-.hero-mid{display:flex;align-items:center;gap:6px;margin:6px 0 4px}
-.puffbtn{position:relative;flex:0 0 46%;max-width:210px;border:0;background:none;padding:0}
+/* hero: no box, it sits straight on the colour */
+.hero{position:relative;padding:4px 0 6px;touch-action:pan-y}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.placepill{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--ink);color:var(--field);border-radius:999px;padding:9px 14px 9px 14px;font-weight:800;font-size:15px;max-width:72%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.placepill svg{flex:0 0 auto;width:12px;height:12px}
+@media (prefers-color-scheme: dark){ .placepill{background:var(--bandc);color:#17142a} }
+.dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--ink);opacity:.25}
+.dots i.on{opacity:1;width:18px;border-radius:9px}
+.stage{position:relative;margin:14px 0 0}
+.num{display:inline-block;white-space:nowrap;font-family:var(--fd);font-weight:400;font-size:clamp(150px,52vw,250px);line-height:.8;letter-spacing:-.02em;color:var(--numc);font-variation-settings:"YEAR" var(--yr);transition:font-variation-settings 2.2s cubic-bezier(.4,.1,.2,1);margin-left:-.04em}
+.num.n3{font-size:clamp(112px,37vw,200px)}
+.puffbtn{position:absolute;right:-4px;top:-26px;width:34%;max-width:170px;border:0;background:none;padding:0;z-index:2}
 .puff{display:block;width:100%;height:auto;overflow:visible}
-.puff.big .pbody{animation:bob 3.4s ease-in-out infinite;transform-origin:50% 90%}
-.puff .eyes,.puff .shades{transform-box:fill-box;transform-origin:center}
+.puff.big .pbody{animation:bob 3.6s ease-in-out infinite;transform-origin:50% 90%}
+.puff .eyes{transform-box:fill-box;transform-origin:center}
 .puff.big .eyes{animation:blink 5s infinite}
 .puff .spark{animation:twinkle 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 .puff .spark:nth-of-type(2){animation-delay:.6s}
 .puff .fume{animation:fume 3s ease-in infinite;opacity:0}
 .puff .fume:nth-of-type(2){animation-delay:1s}.puff .fume:nth-of-type(3){animation-delay:2s}
 .puff.boing .pbody{animation:boing .6s cubic-bezier(.3,1.6,.5,1)}
-@keyframes bob{50%{transform:translateY(-6px) rotate(-1.5deg)}}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-2deg)}}
 @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
 @keyframes twinkle{50%{transform:scale(.4) rotate(40deg);opacity:.4}}
 @keyframes fume{0%{opacity:0;transform:translate(0,0) scale(.6)}30%{opacity:.8}100%{opacity:0;transform:translate(-14px,-30px) scale(1.4)}}
 @keyframes boing{0%{transform:scale(1)}30%{transform:scale(1.12,.86)}60%{transform:scale(.94,1.08)}100%{transform:scale(1)}}
-.bubble{position:absolute;left:4%;top:-6px;transform:translateY(-100%) scale(.6);opacity:0;pointer-events:none;background:#fff;color:#17142a;border:var(--bw) solid #17142a;border-radius:16px;padding:8px 11px;font-size:13.5px;font-weight:700;width:max-content;max-width:230px;text-align:left;box-shadow:3px 3px 0 #17142a;transition:all .25s cubic-bezier(.2,1.4,.4,1);z-index:3}
+.bubble{position:absolute;right:20%;top:0;transform:translateY(-100%) scale(.6);transform-origin:80% 100%;opacity:0;pointer-events:none;background:var(--card);color:var(--ink);border-radius:18px 18px 4px 18px;padding:9px 12px;font-size:14px;font-weight:700;width:max-content;max-width:220px;text-align:left;box-shadow:0 6px 0 rgba(0,0,0,.12);transition:all .25s cubic-bezier(.2,1.4,.4,1)}
 .bubble.on{opacity:1;transform:translateY(-100%) scale(1)}
-.bubble::after{content:'';position:absolute;left:28px;bottom:-9px;width:14px;height:14px;background:#fff;border-right:var(--bw) solid #17142a;border-bottom:var(--bw) solid #17142a;transform:rotate(45deg)}
-.hnum{flex:1;text-align:center;min-width:0}
-.num{font-family:var(--fd);font-weight:800;font-size:clamp(76px,24vw,128px);line-height:.92;letter-spacing:-.05em}
-.num.n3{font-size:clamp(56px,17vw,100px)}
-.unit{font-family:var(--fd);font-weight:700;font-size:13px;letter-spacing:.12em;opacity:.7;margin:2px 0 8px}
-.sticker{display:inline-block;background:#fff;color:#17142a;border:var(--bw) solid #17142a;border-radius:999px;padding:6px 14px;font-family:var(--fd);font-weight:700;font-size:14px;transform:rotate(-4deg);box-shadow:3px 3px 0 #17142a;white-space:nowrap}
-.hero .sticker{animation:wiggle 4s ease-in-out infinite}
-@keyframes wiggle{0%,86%,100%{transform:rotate(-4deg)}90%{transform:rotate(3deg)}94%{transform:rotate(-6deg)}}
-.tag{font-family:var(--fd);font-weight:700;font-size:17px;line-height:1.3;margin:10px 0 6px}
-.trend{margin:0 0 12px;font-weight:700;font-size:15px}
-.trend b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#17142a;color:#fff;font-size:13px;margin-right:4px}
-.mchips{display:flex;flex-wrap:wrap;gap:6px}
-.mchip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.75);border:2px solid #17142a;border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:700;color:#17142a}
-.hero.swap{animation:swap .4s ease-out}
-@keyframes swap{from{opacity:.3;transform:translateX(var(--dx,0)) scale(.98)}}
+.bandname{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:12px 0 0}
+.bandname b{font-size:26px;font-weight:900;letter-spacing:-.02em}
+.bandname span{font-weight:700;color:var(--ink2);font-size:14px}
+.tag{font-size:21px;line-height:1.25;font-weight:700;margin:6px 0 0;max-width:24ch;letter-spacing:-.01em}
+.trend{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-weight:700;font-size:15px}
+.trend svg{flex:0 0 auto;width:22px;height:22px}
+.mchips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
+.mchip{display:inline-flex;align-items:center;gap:5px;background:var(--panel);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.savehere{display:inline-flex;align-items:center;gap:5px;background:var(--ink);color:var(--field);border:0;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:800}
+.hero.swap .stage,.hero.swap .tag{animation:swap .45s ease-out}
+@keyframes swap{from{opacity:.2;transform:translateX(var(--dx,0))}}
 
-/* can I...? */
-.acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.act{border:var(--bw) solid var(--edge);border-radius:18px;padding:12px;background:var(--soft);display:flex;flex-direction:column;gap:3px;min-width:0}
-.act .ae{font-size:28px;line-height:1.1}
-.act .an{font-weight:800;font-size:14.5px;line-height:1.2}
-.act .av{align-self:flex-start;font-family:var(--fd);font-weight:700;font-size:12.5px;border:2px solid var(--edge);border-radius:999px;padding:3px 9px;margin:4px 0 2px;white-space:nowrap}
-.act.v0 .av{background:var(--yes)}.act.v1 .av{background:var(--mid)}.act.v2 .av{background:var(--no)}
-.act .as{font-size:12.5px;color:var(--ink2);font-weight:600;line-height:1.3}
+/* panels: frosted white on the colour */
+.panel{background:var(--panel);border-radius:var(--r);padding:16px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);margin-top:14px;position:relative}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ph h2{font-size:15px;font-weight:800;color:var(--ink2)}
+.linkbtn{border:0;background:none;padding:4px 0;font-weight:800;font-size:14px;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 
-/* hourly bars */
-.bars{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:4px 16px 2px;scrollbar-width:none;scroll-snap-type:x proximity}
-.bars::-webkit-scrollbar{display:none}
-.hb{flex:0 0 32px;display:flex;flex-direction:column;align-items:center;scroll-snap-align:start}
-.hb .hs{height:18px;font-size:13px}
-.hb .tr{height:120px;width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
-.hb .hv{font-size:11.5px;font-weight:800;margin-bottom:3px}
-.hb i{display:block;width:100%;border:2px solid var(--edge);border-radius:9px 9px 5px 5px;transform-origin:bottom;animation:grow .6s cubic-bezier(.2,1.2,.4,1) both}
-.hb .ht{font-size:11px;font-weight:700;color:var(--ink2);margin-top:5px;white-space:nowrap}
-.hb.now .ht{color:var(--ink);font-weight:800}
-.hb.now i{box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--edge)}
-@keyframes grow{from{transform:scaleY(0)}}
+/* my thing */
+.mine{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;margin-top:10px}
+.mine .ic{grid-row:span 3;font-size:56px;line-height:1}
+.mine .nm{font-weight:800;font-size:17px}
+.verdict{justify-self:start;display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 14px 5px 10px;font-weight:900;font-size:20px;letter-spacing:-.01em}
+.verdict i{width:12px;height:12px;border-radius:50%;background:currentColor}
+.v0 .verdict,.mini-t.v0 .vw{background:var(--yes)}
+.v1 .verdict,.mini-t.v1 .vw{background:var(--mid)}
+.v2 .verdict,.mini-t.v2 .vw{background:var(--no)}
+.mine .nm,.mine .verdict,.mine .when{grid-column:2}
+.mine .when{font-weight:700;font-size:14.5px;color:var(--ink2);justify-self:start}
+.others{display:flex;gap:8px;overflow-x:auto;margin:12px -18px 0;padding:2px 18px 4px;scrollbar-width:none;scroll-snap-type:x proximity}
+.others::-webkit-scrollbar{display:none}
+.mini-t{flex:0 0 auto;scroll-snap-align:start;display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:18px;padding:8px 12px 8px 9px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.mini-t .e{font-size:24px;line-height:1}
+.mini-t b{display:block;font-size:13px;font-weight:800}
+.mini-t .vw{display:inline-block;margin-top:2px;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800;color:#17142a}
+@media (prefers-color-scheme: dark){ .mini-t .vw{color:var(--ink)} }
+
+/* plan your day */
+.plan .strip{display:flex;gap:3px;overflow-x:auto;margin:12px -16px 0;padding:22px 16px 4px;scrollbar-width:none;position:relative}
+.plan .strip::-webkit-scrollbar{display:none}
+.hc{flex:0 0 22px;display:flex;flex-direction:column;align-items:center;gap:5px;border:0;background:none;padding:0;position:relative}
+.hc i{display:block;width:22px;height:46px;border-radius:7px;transform-origin:bottom}
+.hc.night i{opacity:.55}
+.hc.sel i{box-shadow:0 0 0 2.5px var(--ink)}
+.hc span{font-size:11px;font-weight:700;color:var(--ink2);height:14px;white-space:nowrap}
+.hc .v{position:absolute;top:-19px;font-size:11px;font-weight:800;color:var(--ink)}
+.hc.day::before{content:attr(data-day);position:absolute;left:-2px;top:-19px;font-size:11px;font-weight:900;background:var(--ink);color:var(--field);border-radius:6px;padding:0 5px;z-index:1}
+.hc.best i{outline:3px solid var(--ink);outline-offset:-1px}
+.planread{margin:8px 0 0;font-weight:700;font-size:14.5px;min-height:20px}
+.planread b{font-weight:900}
+
+/* share + dig deeper */
+.sharebtn{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;margin-top:14px;border:0;background:var(--ink);color:var(--field);border-radius:20px;padding:15px;font-weight:800;font-size:16px}
+.sharebtn svg{width:18px;height:18px}
+@media (prefers-color-scheme: dark){ .sharebtn{background:var(--bandc);color:#17142a} }
+.deep{margin-top:14px;background:var(--panel);border-radius:var(--r);overflow:hidden;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.deep h2{font-size:15px;font-weight:800;color:var(--ink2);padding:14px 16px 4px}
+.row{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;text-align:left;padding:13px 16px;border-top:1.5px solid var(--line);font-weight:700}
+.row:first-of-type{border-top:0}
+.row .e{font-size:21px;width:26px;text-align:center}
+.row .t{flex:1;min-width:0}
+.row .t small{display:block;font-weight:600;color:var(--ink2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row svg{width:10px;height:16px;opacity:.5}
+.deepgrid{display:none}
+
+/* cards (inside sheets, and inline on iPad) */
+.card{background:var(--card);border-radius:var(--r);padding:16px;position:relative;min-width:0}
+.card h2{font-size:18px;font-weight:900;margin:0 0 6px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+.card h2 .em{font-size:20px;line-height:1}
+.sub{color:var(--ink2);font-size:14.5px;margin:0 0 12px;font-weight:500}
+.tiny{color:var(--ink2);font-size:12.5px;margin:10px 0 0}
+.lead{font-weight:700;font-size:15.5px;margin:0}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;background:var(--ink);color:var(--card);border-radius:999px;padding:11px 18px;font-weight:800;font-size:14px;margin-top:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-weight:800;font-size:13px;background:var(--soft)}
+.banners{display:grid;gap:8px;margin-top:14px}
+.banner{display:flex;gap:12px;align-items:flex-start;border-radius:18px;padding:11px 14px;background:var(--ink);color:var(--field);font-size:14.5px}
+.banner .e{font-size:20px;line-height:1.1}
+.banner b{display:block}
+@media (prefers-color-scheme: dark){ .banner{background:var(--card);color:var(--ink)} }
 
 /* compare chart */
 .cmp{position:relative;margin-top:8px;touch-action:pan-y}
@@ -182,173 +194,171 @@ h1,h2,h3{font-family:var(--fd);letter-spacing:-.01em}
 .cmp .fut{fill:var(--soft)}
 .cmp .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.2s ease-out forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
-.tip{position:absolute;top:0;transform:translateX(-50%);background:var(--ink);color:var(--paper);border-radius:12px;padding:6px 10px;font-size:12.5px;font-weight:600;pointer-events:none;white-space:nowrap;z-index:2}
+.tip{position:absolute;top:0;transform:translateX(-50%);background:var(--ink);color:var(--card);border-radius:12px;padding:6px 10px;font-size:12.5px;font-weight:600;pointer-events:none;white-space:nowrap;z-index:2}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;font-weight:700;color:var(--ink2);margin-top:10px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
-.lead{font-weight:700;font-size:15.5px;margin:0}
 
-/* smoke card */
+/* smoke, days, fires, check */
 .srcbars{display:grid;gap:8px;margin:12px 0 4px}
 .srcbar{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-weight:700;font-size:14px}
-.srcbar .bar{grid-column:1/-1;height:12px;border:2px solid var(--edge);border-radius:999px;overflow:hidden;background:var(--soft)}
-.srcbar .bar i{display:block;height:100%;background:var(--hot);border-radius:999px;transform-origin:left;animation:growx .8s ease-out both}
-@keyframes growx{from{transform:scaleX(0)}}
-.windrow{display:flex;align-items:center;gap:14px;margin-top:12px;padding-top:12px;border-top:2px dashed var(--grid)}
-.compass{flex:0 0 78px;height:78px;border:var(--bw) solid var(--edge);border-radius:50%;position:relative;background:var(--soft)}
+.srcbar .bar{grid-column:1/-1;height:10px;border-radius:999px;overflow:hidden;background:var(--soft)}
+.srcbar .bar i{display:block;height:100%;background:var(--hot);border-radius:999px}
+.windrow{display:flex;align-items:center;gap:14px;margin-top:12px;padding-top:12px;border-top:1.5px solid var(--line)}
+.compass{flex:0 0 78px;height:78px;border-radius:50%;position:relative;background:var(--soft)}
 .compass b{position:absolute;font-size:10px;font-weight:800;color:var(--ink2)}
 .compass .arrow{position:absolute;inset:0;transition:transform 1.4s cubic-bezier(.2,1.3,.4,1)}
 .compass .arrow svg{width:100%;height:100%}
-.pill{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--edge);border-radius:999px;padding:3px 10px;font-weight:800;font-size:13px;background:var(--soft)}
-
-/* days */
 .days{display:grid;gap:10px}
 .dr{display:grid;grid-template-columns:52px 30px 1fr 30px;align-items:center;gap:8px;font-weight:700}
 .dr .lo{text-align:right;color:var(--ink2)}
-.dr .track{position:relative;height:12px;border-radius:999px;background:var(--soft);border:2px solid var(--edge)}
-.dr .range{position:absolute;top:-2px;bottom:-2px;border-radius:999px;border:2px solid var(--edge);transform-origin:left;animation:growx .7s ease-out both}
-.dr .nowdot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--card);border:3px solid var(--edge)}
-
-/* fires */
-.bignum{font-family:var(--fd);font-weight:800;font-size:38px;line-height:1;letter-spacing:-.03em}
+.dr .track{position:relative;height:10px;border-radius:999px;background:var(--soft)}
+.dr .range{position:absolute;top:0;bottom:0;border-radius:999px}
+.dr .nowdot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
+.bignum{font-family:var(--fd);font-size:40px;line-height:1}
 .firerows{display:grid;gap:8px;margin-top:12px}
-
-/* check */
 table.check{width:100%;border-collapse:collapse;font-size:13.5px}
-.check th{text-align:left;font-size:11.5px;color:var(--ink2);font-weight:800;padding:0 4px 6px;text-transform:uppercase;letter-spacing:.04em}
-.check td{padding:7px 4px;border-top:2px dashed var(--grid);font-weight:600}
-.check td.win{font-weight:800;color:var(--accent)}
+.check th{text-align:left;font-size:12.5px;color:var(--ink2);font-weight:800;padding:0 4px 6px}
+.check td{padding:7px 4px;border-top:1.5px solid var(--line);font-weight:600}
+.check td.win{font-weight:900;color:var(--accent)}
 
 /* leaderboard */
-.lbs{display:grid;gap:10px}
-.lb{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:var(--bw) solid var(--edge);background:var(--card);border-radius:20px;padding:10px 12px;box-shadow:3px 3px 0 var(--shc);transition:transform .12s}
-.lb:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shc)}
-.lb.sel{outline:3px solid var(--accent);outline-offset:2px}
-.lb .rk{flex:0 0 26px;height:26px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--fd);font-weight:700;font-size:12px}
-.lb .mini{flex:0 0 46px;height:38px}
+.lbhead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.lbhead .vsub{margin:0}
+.tools{display:flex;gap:8px}
+.sbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--panel);border-radius:999px;padding:9px 15px;font-weight:800;font-size:14px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.sbtn.primary,.sbtn.on{background:var(--ink);color:var(--field)}
+@media (prefers-color-scheme: dark){ .sbtn.primary,.sbtn.on{background:var(--bandc);color:#17142a} }
+.lbs{display:grid;gap:8px}
+.lb{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--panel);border-radius:20px;padding:10px 12px;cursor:pointer;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.lb.sel{box-shadow:inset 0 0 0 3px var(--ink)}
+.lb.editing{cursor:default}
+.lb .rk{flex:0 0 22px;font-weight:900;font-size:17px;text-align:center}
+.lb .mini{flex:0 0 44px;height:34px}
 .lb .mini svg{width:100%;height:100%}
 .lb .tx{flex:1;min-width:0}
 .lb .nm{display:block;font-weight:800;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lb .ds{display:block;font-size:12.5px;color:var(--ink2);font-weight:600}
-.lb .vl{flex:0 0 auto;min-width:58px;text-align:center;font-family:var(--fd);font-weight:800;font-size:22px;color:#17142a;border:var(--bw) solid var(--edge);border-radius:14px;padding:4px 8px}
-.lb .crown{font-size:16px}
+.lb .vl{flex:0 0 auto;min-width:60px;text-align:center;font-family:var(--fd);font-size:22px;color:#17142a;border-radius:14px;padding:6px 8px}
+.lb .crown{font-size:15px}
+.lb .del{flex:0 0 auto;width:44px;height:44px;border-radius:14px;border:0;background:var(--no);font-size:19px;display:grid;place-items:center}
+.yours{display:inline-block;font-size:11px;font-weight:800;background:var(--ink);color:var(--field);border-radius:999px;padding:1px 7px;margin-left:5px;vertical-align:2px}
+.yours.here{background:var(--hot);color:#fff}
+.restore{margin-top:14px;display:grid;gap:8px}
+.restore .row2{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);border-radius:16px;padding:8px 8px 8px 14px;font-weight:700}
+.follow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;background:var(--panel);border-radius:18px;padding:12px 14px;font-weight:800;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.follow small{display:block;font-weight:600;color:var(--ink2);font-size:12.5px}
+.switch{position:relative;flex:0 0 52px;height:30px;border-radius:999px;border:0;background:var(--soft);padding:0}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--ink);transition:transform .2s}
+.switch[aria-checked=true]{background:var(--ink)}
+.switch[aria-checked=true]::after{transform:translateX(22px);background:var(--field)}
 
 /* map */
 .maphead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.seg{display:inline-flex;border:var(--bw) solid var(--edge);border-radius:999px;padding:3px;background:var(--card);box-shadow:2px 2px 0 var(--shc)}
-.seg button{border:0;background:none;border-radius:999px;padding:7px 12px;font-weight:800;font-size:13.5px}
-.seg button.on{background:var(--ink);color:var(--paper)}
-.mapbox{border:var(--bw) solid var(--edge);border-radius:16px;overflow:hidden;background:#0f2236}
+.seg{display:inline-flex;border-radius:999px;padding:3px;background:var(--panel);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.seg button{border:0;background:none;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13.5px}
+.seg button.on{background:var(--ink);color:var(--field)}
+.mapcard{background:var(--panel);border-radius:var(--r);padding:10px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.mapbox{border-radius:16px;overflow:hidden;background:#0f2236}
 .mapbox svg{display:block;width:100%;height:auto}
-.mapctl{display:flex;align-items:center;gap:12px;margin-top:12px}
-.playb{flex:0 0 44px;height:44px;border-radius:50%;border:var(--bw) solid var(--edge);background:var(--ink);color:var(--paper);display:grid;place-items:center;box-shadow:2px 2px 0 var(--accent)}
+.mapctl{display:flex;align-items:center;gap:12px;margin-top:10px;padding:0 4px}
+.playb{flex:0 0 44px;height:44px;border-radius:50%;border:0;background:var(--ink);color:var(--field);display:grid;place-items:center}
 .playb svg{width:16px;height:16px;fill:currentColor}
-input[type=range]{flex:1;accent-color:var(--accent);height:28px;min-width:0}
+input[type=range]{flex:1;accent-color:var(--ink);height:28px;min-width:0}
 .when{flex:0 0 auto;font-weight:800;font-size:13.5px;min-width:86px;text-align:right}
+.mapcard .legend{padding:0 4px 4px}
 .pulse{animation:pulse 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes pulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(3.2);opacity:0}}
 .smoke-g{transition:opacity .45s}
+.story{margin-top:14px}
 .story p{margin:6px 0 0;font-weight:600}
-.story .big{font-family:var(--fd);font-weight:800;font-size:19px}
 
 /* FAQ */
-details.card{padding:0}
+.faq{display:grid;gap:8px}
+details.card{padding:0;background:var(--panel);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 details.card summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 16px;font-weight:800;font-size:15.5px;cursor:pointer}
 details.card summary::-webkit-details-marker{display:none}
-details.card summary::after{content:'+';flex:0 0 28px;height:28px;border-radius:50%;border:2px solid var(--edge);display:grid;place-items:center;font-family:var(--fd);font-weight:700;transition:transform .2s}
+details.card summary::after{content:'+';flex:0 0 28px;height:28px;border-radius:50%;background:var(--ink);color:var(--field);display:grid;place-items:center;font-weight:900;transition:transform .2s}
 details.card[open] summary::after{transform:rotate(45deg)}
-details.card .ans{padding:0 16px 16px;color:var(--ink2);font-weight:500;font-size:15px}
+details.card .ans{padding:0 16px 16px;font-weight:500;font-size:15px}
 details.card .ans p{margin:0 0 10px}
 .scale{display:grid;gap:6px;margin:4px 0 10px}
-.scale div{display:grid;grid-template-columns:76px 1fr;gap:10px;align-items:center;font-weight:700;color:var(--ink)}
-.scale b{border:2px solid var(--edge);border-radius:10px;padding:3px 0;text-align:center;color:#17142a;font-family:var(--fd);font-size:12.5px}
-.faq{display:grid;gap:12px}
+.scale div{display:grid;grid-template-columns:80px 1fr;gap:10px;align-items:center;font-weight:700}
+.scale b{border-radius:10px;padding:4px 0;text-align:center;color:#17142a;font-size:14px;font-weight:900}
 
-/* add / edit places */
-.lbhead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.lbhead .vsub{margin:0}
-.tools{display:flex;gap:8px}
-.sbtn{display:inline-flex;align-items:center;gap:6px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:800;font-size:14px;box-shadow:2px 2px 0 var(--shc)}
-.sbtn.primary{background:var(--accent);color:#fff}
-.sbtn.on{background:var(--ink);color:var(--paper)}
-.sbtn:active{transform:translate(2px,2px);box-shadow:none}
-.chip.add{padding:7px 14px;background:var(--accent);color:#fff;font-size:15px}
-.lb .del{flex:0 0 auto;width:46px;height:46px;border-radius:14px;border:var(--bw) solid var(--edge);background:var(--no);font-size:20px;display:grid;place-items:center}
-.lb.editing{cursor:default}
-.lb.editing:active{transform:none;box-shadow:3px 3px 0 var(--shc)}
-.yours{display:inline-block;font-size:11px;font-weight:800;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;margin-left:4px;vertical-align:2px}
-.restore{margin-top:14px;display:grid;gap:8px}
-.yours.here{background:var(--hot)}
-.follow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:3px 3px 0 var(--shc);font-weight:700}
-.follow small{display:block;font-weight:600;color:var(--ink2);font-size:12.5px}
-.switch{position:relative;flex:0 0 52px;height:30px;border-radius:999px;border:var(--bw) solid var(--edge);background:var(--soft);padding:0}
-.switch::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--ink);transition:transform .2s}
-.switch[aria-checked=true]{background:var(--b1)}
-.switch[aria-checked=true]::after{transform:translateX(22px)}
-.savehere{display:inline-flex;align-items:center;gap:5px;background:#17142a;color:#fff;border:2px solid #17142a;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:800}
-.restore .row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px dashed var(--grid);border-radius:16px;padding:8px 8px 8px 14px;font-weight:700}
-.scrim{position:fixed;inset:0;background:rgba(10,8,20,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
-.scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:50%;bottom:0;z-index:41;width:min(100%,520px);max-height:88vh;overflow:auto;transform:translate(-50%,105%);transition:transform .35s cubic-bezier(.2,1.1,.3,1);
-  background:var(--paper);border:var(--bw) solid var(--edge);border-bottom:0;border-radius:26px 26px 0 0;padding:10px 18px calc(22px + var(--safe-b));box-shadow:0 -4px 0 var(--accent)}
-.sheet{visibility:hidden}
-.sheet.on{transform:translate(-50%,0);visibility:visible}
-.grab{width:44px;height:5px;border-radius:9px;background:var(--grid);margin:0 auto 10px}
-.sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.sh-head h2{margin:0;font-size:21px}
-.search{display:flex;gap:8px}
-.search input,.namebox input{flex:1;min-width:0;font:inherit;font-weight:700;font-size:16px;color:var(--ink);background:var(--card);border:var(--bw) solid var(--edge);border-radius:16px;padding:11px 14px;outline:none}
-.search input:focus,.namebox input:focus{box-shadow:3px 3px 0 var(--accent)}
-.search .btn,.namebox .btn{margin:0}
-.geo{width:100%;justify-content:center;margin:10px 0 4px;background:var(--card);color:var(--ink);box-shadow:3px 3px 0 var(--shc)}
-.results{display:grid;gap:8px;margin-top:10px}
-.res{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;border:var(--bw) solid var(--edge);background:var(--card);border-radius:16px;padding:10px 12px;box-shadow:2px 2px 0 var(--shc)}
-.res b{display:block;font-size:15px}
-.res span{display:block;font-size:12.5px;color:var(--ink2);font-weight:600}
-.namebox{display:grid;gap:10px;border:var(--bw) solid var(--edge);background:var(--card);border-radius:18px;padding:14px;margin-top:10px}
-.namebox label{font-weight:800;font-size:14px}
-.namebox .row{display:flex;gap:8px}
-.msg{font-weight:700;color:var(--ink2);text-align:center;padding:10px}
-.side .tools{margin:0 0 12px}
-.foot{color:var(--ink2);font-size:12px;text-align:center;margin:24px 0 0;line-height:1.6}
+.foot{color:var(--ink2);font-size:12px;text-align:center;margin:26px 0 0;line-height:1.6}
 
 /* tab bar */
-.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + var(--safe-b));z-index:20;display:flex;gap:4px;padding:6px;background:var(--ink);border-radius:26px;border:var(--bw) solid var(--edge);box-shadow:4px 4px 0 var(--accent);width:min(calc(100% - 28px),420px)}
-.tabbar button{flex:1;border:0;background:none;color:var(--paper);border-radius:20px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:20px;line-height:1.1;transition:background .2s,color .2s}
-.tabbar button span{font-size:11.5px;font-weight:800;letter-spacing:.02em}
-.tabbar button.on{background:var(--bandc);color:#17142a}
-.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translate(-50%,20px);opacity:0;z-index:30;background:var(--ink);color:var(--paper);border-radius:999px;padding:9px 16px;font-weight:700;font-size:14px;transition:all .3s;pointer-events:none;white-space:nowrap}
+.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + var(--safe-b));z-index:20;display:flex;gap:4px;padding:6px;background:var(--ink);border-radius:28px;width:min(calc(100% - 28px),420px);box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.tabbar button{flex:1;border:0;background:none;color:var(--field);border-radius:22px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:800;transition:background .2s,color .2s}
+.tabbar button svg{width:22px;height:22px}
+.tabbar button.on{background:var(--field);color:var(--ink)}
+@media (prefers-color-scheme: dark){ .tabbar{background:#05040a} .tabbar button{color:#f6f2ff} .tabbar button.on{background:var(--bandc);color:#17142a} }
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-b));transform:translate(-50%,20px);opacity:0;z-index:30;background:var(--ink);color:var(--field);border-radius:999px;padding:9px 16px;font-weight:700;font-size:14px;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-color-scheme: dark){ .toast{background:var(--card);color:var(--ink)} }
 
 /* pull to refresh */
-.ptr{position:fixed;left:50%;top:calc(var(--safe-t) - 50px);width:48px;height:48px;margin-left:-24px;z-index:25;border-radius:50%;background:var(--card);border:var(--bw) solid var(--edge);box-shadow:3px 3px 0 var(--shc);display:grid;place-items:center;opacity:0;transition:opacity .2s}
+.ptr{position:fixed;left:50%;top:calc(var(--safe-t) - 50px);width:48px;height:48px;margin-left:-24px;z-index:25;border-radius:50%;background:var(--card);display:grid;place-items:center;opacity:0;transition:opacity .2s;box-shadow:0 6px 18px rgba(0,0,0,.15)}
 .ptr svg{width:34px;height:26px}
 .ptr.show{opacity:1}
 .ptr.spin{transform:translateY(80px)!important;transition:transform .2s}
 .ptr.spin svg{animation:spin .9s linear infinite}
 
-/* loading */
-.loading{text-align:center;padding:40px 10px}
-.loading .puff{width:150px;margin:0 auto 12px}
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(10,8,20,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;z-index:41;width:min(100%,560px);max-height:90vh;overflow:auto;transform:translate(-50%,105%);visibility:hidden;transition:transform .35s cubic-bezier(.2,1.1,.3,1),visibility 0s .35s;
+  background:var(--paper);border-radius:28px 28px 0 0;padding:10px 18px calc(24px + var(--safe-b));overscroll-behavior:contain}
+.sheet.on{transform:translate(-50%,0);visibility:visible;transition:transform .35s cubic-bezier(.2,1.1,.3,1)}
+.sheet .card{background:transparent;padding:0}
+.grab{width:44px;height:5px;border-radius:9px;background:var(--grid);margin:0 auto 12px}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.sh-head h2{font-size:22px;font-weight:900;letter-spacing:-.01em}
+.xbtn{flex:0 0 auto;width:38px;height:38px;border-radius:50%;border:0;background:var(--soft);font-size:16px;font-weight:900;display:grid;place-items:center}
+.search{display:flex;gap:8px}
+.search input,.namebox input{flex:1;min-width:0;font:inherit;font-weight:700;font-size:16px;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:11px 14px;outline:none}
+.search input:focus,.namebox input:focus{border-color:var(--ink)}
+.search .btn,.namebox .btn{margin:0}
+.geo{width:100%;justify-content:center;margin:10px 0 4px;background:var(--soft);color:var(--ink)}
+.results{display:grid;gap:8px;margin-top:10px}
+.res{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;border:0;background:var(--card);border-radius:16px;padding:11px 12px}
+.res b{display:block;font-size:15px}
+.res span{display:block;font-size:12.5px;color:var(--ink2);font-weight:600}
+.namebox{display:grid;gap:10px;background:var(--card);border-radius:18px;padding:14px;margin-top:10px}
+.namebox label{font-weight:800;font-size:14px}
+.namebox .row3{display:flex;gap:8px}
+.msg{font-weight:700;color:var(--ink2);text-align:center;padding:10px}
+.things{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.thing{position:relative;display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:9px 15px 9px 11px;font-weight:800;font-size:15px}
+.thing .e{font-size:22px;line-height:1}
+.thing[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--card)}
+.thing .o{position:absolute;top:-7px;right:-5px;min-width:20px;height:20px;border-radius:10px;background:var(--hot);color:#fff;font-size:11.5px;display:grid;place-items:center;padding:0 5px}
+.loading{text-align:center;padding:60px 10px}
+.loading .puff{width:150px;margin:0 auto 14px}
+.loading h2{font-size:20px;font-weight:900}
 
 /* iPad and wider */
 @media (min-width:900px){
-  .app{max-width:1240px;display:grid;grid-template-columns:330px minmax(0,1fr);gap:28px;padding:calc(var(--safe-t) + 18px) 28px calc(120px + var(--safe-b))}
-  .side{display:block;position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto;padding:4px 6px 30px 2px;scrollbar-width:none}
-  .side .brand{margin:6px 0 18px;font-size:22px}
-  .side h2{font-size:17px;margin:0 0 4px}
+  .app{max-width:1240px;display:grid;grid-template-columns:320px minmax(0,1fr);gap:32px;padding:calc(var(--safe-t) + 18px) 28px calc(120px + var(--safe-b))}
+  .side{display:block;position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto;padding:4px 4px 30px;scrollbar-width:none}
+  .side .brand{margin:4px 0 20px;font-size:19px}
+  .side h2{font-size:17px;font-weight:900;margin:0 0 4px}
   .main .top .brand{visibility:hidden}
-  .chips,.tab-places,.ibtn{display:none!important}
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-  .span2{grid-column:1/-1}
-  .acts{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .hero{padding:24px}
-  .puffbtn{flex-basis:38%}
-  .num{font-size:132px}
-  .num.n3{font-size:112px}
-  .bars{margin:0;padding:4px 0 2px}
-  .hb{flex:1 1 0;min-width:20px}
+  .tab-places,.placepill .chev{display:none!important}
+  .nowgrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:28px;align-items:start}
+  .nowgrid .hero{position:sticky;top:20px}
+  .num{font-size:clamp(160px,17vw,250px)}
+  .num.n3{font-size:clamp(120px,13vw,200px)}
+  .puffbtn{width:36%}
+  .others{margin:12px 0 0;padding:2px 0 4px;flex-wrap:wrap;overflow:visible}
+  .rows{display:none}
+  .deep{background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;overflow:visible}
+  .deep h2{padding:0;margin:8px 0 10px}
+  .deepgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .deepgrid .card.wide{grid-column:1/-1}
   .tabbar{width:340px}
   .mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+  .mapgrid .story{margin-top:0}
   .faq{grid-template-columns:1fr 1fr;align-items:start}
 }
 @media (prefers-reduced-motion: reduce){
@@ -357,57 +367,57 @@ details.card .ans p{margin:0 0 10px}
 </style>
 </head>
 <body>
-<div class="bgfx" aria-hidden="true"><i></i><i></i><i></i><div class="hazefx" id="hazefx"></div></div>
+<div class="field" aria-hidden="true"><div class="hazefx" id="hazefx"></div></div>
 <div class="ptr" id="ptr" aria-hidden="true"></div>
 
 <div class="app">
-  <aside class="side" aria-label="Our places">
-    <div class="brand"><span class="logo" data-logo></span>haze<span>watch</span></div>
-    <h2>Cleanest air right now 🏆</h2>
-    <p class="sub">Tap a place to see the full picture.</p>
-    <div class="tools"><button type="button" class="sbtn primary" data-add>＋ Add a place</button><button type="button" class="sbtn" data-edit>✏️ Edit</button></div>
+  <aside class="side" aria-label="Places">
+    <div class="brand"><span class="logo" data-logo></span>haze watch</div>
+    <h2>Cleanest air right now</h2>
+    <p class="sub">Tap a place to see it.</p>
+    <div class="tools" style="margin-bottom:12px"><button type="button" class="sbtn primary" data-add>Add a place</button><button type="button" class="sbtn" data-edit>Edit</button></div>
     <div class="lbs" id="sideList"></div>
     <div class="restore" id="sideRestore"></div>
-    <div class="follow"><span>📍 Open on where I am<small>Each time the app opens or refreshes</small></span><button type="button" class="switch" role="switch" data-follow aria-checked="true" aria-label="Open on where I am"></button></div>
+    <div class="follow"><span>Open on where I am<small>Each time the app opens or refreshes</small></span><button type="button" class="switch" role="switch" data-follow aria-checked="true" aria-label="Open on where I am"></button></div>
   </aside>
 
   <main class="main">
     <header class="top">
-      <div class="brand"><span class="logo" data-logo></span>haze<span>watch</span></div>
+      <div class="brand"><span class="logo" data-logo></span>haze watch</div>
       <button class="upd" id="upd" type="button" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></svg><span id="updT">Loading</span></button>
     </header>
-    <nav class="chips" id="chips" aria-label="Places"></nav>
 
     <section class="view on" id="v-now" aria-label="Now">
-      <div class="grid" id="nowGrid"><div class="card span2 loading" id="loading"></div></div>
+      <div id="nowWrap"><div class="loading" id="loading"></div></div>
     </section>
 
     <section class="view" id="v-map" aria-label="Smoke map">
       <div class="maphead">
-        <div><h1 class="vh">Smoke map 🗺️</h1><p class="vsub" style="margin:0">Fires, smoke and wind for the next 3 days</p></div>
-        <div class="seg" role="tablist" aria-label="Map area"><button type="button" data-m="region" class="on" role="tab" aria-selected="true">🌏 Region</button><button type="button" data-m="local" role="tab" aria-selected="false">📍 Close-up</button></div>
+        <div><h1 class="vh">Smoke map</h1><p class="vsub" style="margin:0">Fires, smoke and wind over the next 3 days</p></div>
+        <div class="seg" role="tablist" aria-label="Map area"><button type="button" data-m="region" class="on" role="tab" aria-selected="true">Region</button><button type="button" data-m="local" role="tab" aria-selected="false">Close-up</button></div>
       </div>
       <div class="mapgrid">
-        <div class="card">
+        <div class="mapcard">
           <div class="mapbox" id="mapbox"></div>
           <div class="mapctl"><button type="button" class="playb" id="play" aria-label="Pause"><svg viewBox="0 0 16 16" id="playIcon"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button><input type="range" id="t" min="0" max="24" step="1" value="0" aria-label="Time ahead"><span class="when" id="when">Now</span></div>
           <div class="legend" id="mapLegend"></div>
         </div>
-        <div class="card story" id="mapStory"></div>
+        <div class="card story" id="mapStory" style="background:var(--panel)"></div>
       </div>
     </section>
 
     <section class="view" id="v-places" aria-label="Places">
-      <div class="lbhead"><div><h1 class="vh">Leaderboard 🏆</h1><p class="vsub">Cleanest air first. Tap one to see it.</p></div>
-        <div class="tools"><button type="button" class="sbtn primary" data-add>＋ Add</button><button type="button" class="sbtn" data-edit>✏️ Edit</button></div></div>
+      <div class="lbhead"><div><h1 class="vh">Places</h1><p class="vsub">Cleanest air first. Tap one to see it.</p></div>
+        <div class="tools"><button type="button" class="sbtn primary" data-add>Add</button><button type="button" class="sbtn" data-edit>Edit</button></div></div>
       <div class="lbs" id="placeList"></div>
       <div class="restore" id="placeRestore"></div>
-      <div class="follow"><span>📍 Open on where I am<small>Each time the app opens or refreshes</small></span><button type="button" class="switch" role="switch" data-follow aria-checked="true" aria-label="Open on where I am"></button></div>
+      <div class="follow"><span>Open on where I am<small>Each time the app opens or refreshes</small></span><button type="button" class="switch" role="switch" data-follow aria-checked="true" aria-label="Open on where I am"></button></div>
+      <div class="follow"><span>My activities<small id="thingsSum">Pick what you do outside</small></span><button type="button" class="sbtn primary" data-things>Change</button></div>
     </section>
 
     <section class="view" id="v-faq" aria-label="Questions">
-      <h1 class="vh">FAQ 💬</h1>
-      <p class="vsub">How Haze Watch works, in plain words.</p>
+      <h1 class="vh">How it works</h1>
+      <p class="vsub">Straight answers about the numbers.</p>
       <div class="faq" id="faq"></div>
     </section>
 
@@ -416,24 +426,35 @@ details.card .ans p{margin:0 0 10px}
 </div>
 
 <nav class="tabbar" role="tablist" aria-label="Sections">
-  <button type="button" data-view="now" class="on" role="tab" aria-selected="true">🌤️<span>Now</span></button>
-  <button type="button" data-view="map" role="tab" aria-selected="false">🗺️<span>Map</span></button>
-  <button type="button" data-view="places" class="tab-places" role="tab" aria-selected="false">🏆<span>Places</span></button>
-  <button type="button" data-view="faq" role="tab" aria-selected="false">💬<span>FAQ</span></button>
+  <button type="button" data-view="now" class="on" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/></svg>Now</button>
+  <button type="button" data-view="map" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Map</button>
+  <button type="button" data-view="places" class="tab-places" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Places</button>
+  <button type="button" data-view="faq" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.8 1c0 1.7-2.3 2-2.3 3.5M12 17.5v.01"/></svg>How</button>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="scrim" id="scrim"></div>
 <section class="sheet" id="addSheet" role="dialog" aria-modal="true" aria-labelledby="addT">
   <div class="grab"></div>
-  <div class="sh-head"><h2 id="addT">Add a place ✨</h2><button type="button" class="ibtn" data-close aria-label="Close" style="display:grid;place-items:center">✕</button></div>
+  <div class="sh-head"><h2 id="addT">Add a place</h2><button type="button" class="xbtn" data-close aria-label="Close">✕</button></div>
   <form class="search" id="addForm"><input id="q" type="search" placeholder="e.g. Bangsar, Sunway Pyramid" autocomplete="off" enterkeyhint="search" aria-label="Search for a place"><button type="submit" class="btn">Search</button></form>
   <button type="button" class="btn geo" id="geo">📍 Use where I am now</button>
   <div class="results" id="results"></div>
-  <p class="tiny">Your places are saved on this device only, never on the public website. Added places use the same forecast and nearby stations; the smoke-source breakdown is only for our main places.</p>
+  <p class="tiny">Saved on this device only, never on the public website. Added places get the same forecast and nearby stations; the smoke-source breakdown is only for the main places.</p>
+</section>
+<section class="sheet" id="infoSheet" role="dialog" aria-modal="true" aria-labelledby="infoT">
+  <div class="grab"></div>
+  <div class="sh-head"><h2 id="infoT"></h2><button type="button" class="xbtn" data-close aria-label="Close">✕</button></div>
+  <div id="infoBody"></div>
+</section>
+<section class="sheet" id="thingsSheet" role="dialog" aria-modal="true" aria-labelledby="thingsT">
+  <div class="grab"></div>
+  <div class="sh-head"><h2 id="thingsT">What do you do outside?</h2><button type="button" class="xbtn" data-close aria-label="Close">✕</button></div>
+  <p class="sub">Pick as many as you like. Your first pick gets the big verdict on the main screen.</p>
+  <div class="things" id="thingsList"></div>
+  <button type="button" class="btn" data-thingsdone style="width:100%;justify-content:center;padding:14px">Done</button>
 </section>
 
 <script>
-'use strict';
 /* ================= helpers ================= */
 const H = 3600e3, MYT = 8*H;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
@@ -457,11 +478,11 @@ function api(pm){ if (pm == null) return null; pm = Math.max(0, pm);
   for (let i = 1; i < API_PM25.length; i++){ const [x0,y0] = API_PM25[i-1], [x1,y1] = API_PM25[i]; if (pm <= x1) return y0 + (pm-x0)*(y1-y0)/(x1-x0); }
   const [x0,y0] = API_PM25[5], [x1,y1] = API_PM25[6]; return y1 + (pm-x1)*(y1-y0)/(x1-x0); }
 const BANDS = [
-  {max:50,  name:'Good',           c:'var(--b0)', tag:'Fresh air! Go touch some grass 🌱'},
-  {max:100, name:'Moderate',       c:'var(--b1)', tag:'Pretty decent. Fine for most people 👌'},
-  {max:200, name:'Unhealthy',      c:'var(--b2)', tag:'Not great. Take sport indoors today 😷'},
-  {max:300, name:'Very unhealthy', c:'var(--b3)', tag:'Nope. Stay in with the windows shut 🏠'},
-  {max:1e9, name:'Hazardous',      c:'var(--b4)', tag:'Danger zone. Stay inside 🚨'}];
+  {max:50,  name:'Good',           c:'var(--b0)', tag:'Clean air. Get outside.'},
+  {max:100, name:'Moderate',       c:'var(--b1)', tag:'Fine for most. Go easy if you wheeze.'},
+  {max:200, name:'Unhealthy',      c:'var(--b2)', tag:'Hazy. Take training indoors.'},
+  {max:300, name:'Very unhealthy', c:'var(--b3)', tag:'Bad air. Stay in, windows shut.'},
+  {max:1e9, name:'Hazardous',      c:'var(--b4)', tag:'Dangerous. Stay inside.'}];
 const bandOf = a => a == null ? 0 : BANDS.findIndex(b => Math.round(a) <= b.max);
 const smokeCat = s => s < 20 ? 0 : s < 100 ? 1 : s < 250 ? 2 : 3;
 const SMOKE = ['No smoke','Light smoke','Some smoke','Heavy smoke'];
@@ -469,18 +490,18 @@ const SHORT = {bd:'B. Damansara', s16:'Section 16', klgcc:'KLGCC', saujana:'Sauj
 const short = p => SHORT[p.id] || (p.name.length > 14 ? p.name.slice(0, 13) + '…' : p.name);
 
 const TIPS = [
-  ['Clean air day! Perfect for tennis 🎾','Open the windows, let the fresh air in 🪟','This is the air we want every day ✨'],
-  ['Pretty decent air. Go do your thing 👟','Got asthma? Keep your inhaler handy','Not perfect, but fine for most people 👍'],
-  ['Mask up if you’re heading out 😷 N95 or KF94','Indoor sports kind of day 🏓','Windows shut, purifier on 🌀'],
-  ['Stay in, windows shut 🏠','Hard exercise outside is a big no today','Purifier on max 🌀'],
-  ['Danger zone. Stay inside 🚨','Seal the windows, purifier on max','Only go out if you have to, with an N95']];
-const FACTS = ['PM2.5 bits are 20 to 30 times thinner than a hair 🤏','With the right wind, smoke from Sumatra reaches KL in under a day 🌬️','Rain washes some of the haze out of the air 🌧️','NASA satellites spot the fires from over 800 km up 🛰️','Cloth masks barely stop haze. N95 or KF94 ones do 😷','Tap me again for another one 👀'];
+  ['Air this clean is rare in haze season. Use it.','Windows open. Let the house breathe.','Best kind of day for a long session.'],
+  ['Most people are fine. Asthma? Keep the inhaler close.','Good enough for training. Drink water.','Not perfect, not bad.'],
+  ['Masks: N95 or KF94. Cloth does nothing here.','Indoor courts today.','Windows shut, purifier on.'],
+  ['Hard exercise outside is a no today.','Purifier on max.','Stay in. Text your friends instead.'],
+  ['Only go out if you have to, with an N95.','Seal the windows.','This is as bad as it gets.']];
+const FACTS = ['Haze particles are 20 to 30 times thinner than a hair.','With the right wind, smoke from Sumatra reaches KL in under a day.','Rain washes some of the haze out of the air.','NASA spots the fires from satellites over 800 km up.','Tap me again. I have more.'];
 
 let D = null, GEO = null, NOW = 0, A = [], SEL = 0, VIEW = 'now', MAPMODE = 'region', shownNum = null, tipN = 0;
 const idx = k => NOW + (k - 24) * H;        // series index -> time (index 24 = now)
 const midnight = off => { const d = myt(NOW); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - MYT + off*24*H; };
 const sameDay = (a, b) => { const x = myt(a), y = myt(b); return x.getUTCDate() === y.getUTCDate() && x.getUTCMonth() === y.getUTCMonth(); };
-const dayWord = ms => sameDay(ms, NOW) ? '' : sameDay(ms, NOW + 24*H) ? ' tmrw' : ' ' + DOW[myt(ms).getUTCDay()];
+const dayWord = ms => sameDay(ms, NOW) ? '' : sameDay(ms, NOW + 24*H) ? ' tomorrow' : ' ' + DOW[myt(ms).getUTCDay()];
 const when = ms => hh(ms) + dayWord(ms);
 
 /* ================= the mascot: Puff ================= */
@@ -528,21 +549,27 @@ function trend(p, a){
 }
 function sourceChip(p){
   const o = p.obs;
-  if (!o || o.pm == null) return '<span class="mchip">🛰️ Forecast only, no station nearby</span>';
-  if (o.type === 'sensor') return '<span class="mchip">📡 Local sensor · ' + o.km + ' km</span>';
-  if (o.parts && o.parts.length > 1) return '<span class="mchip">🏛️ ' + o.parts.length + ' DOE stations blended · ' + o.km + '+ km</span>';
-  return '<span class="mchip">🏛️ DOE station · ' + esc(stName(o.station)) + ' · ' + o.km + ' km</span>';
+  if (!o || o.pm == null) return '<span class="mchip">Forecast only, no station nearby</span>';
+  if (o.type === 'sensor') return '<span class="mchip">Local sensor, ' + o.km + ' km away</span>';
+  if (o.parts && o.parts.length > 1) return '<span class="mchip">' + o.parts.length + ' DOE stations nearby, blended</span>';
+  return '<span class="mchip">' + esc(stName(o.station)) + ' DOE station, ' + o.km + ' km away</span>';
 }
 
-/* "Can I...?" ratings. hard = sport, running, golf; easy = walking, hanging out; win = opening windows */
-const ACTS = [
-  {e:'🎾', n:'Tennis & sport', lvl:'hard', len:2},
-  {e:'🏃', n:'Go for a run',   lvl:'hard', len:1},
-  {e:'⛳', n:'Golf',           lvl:'hard', len:4},
-  {e:'🛹', n:'Hang out outside', lvl:'easy', len:2},
-  {e:'🪟', n:'Open the windows', lvl:'win', len:2}];
+/* Activities. hard = sport and running; easy = walking, hanging out; win = opening windows.
+   Every verdict looks at the worst hour of the time you'd be out. */
+const THINGS = {
+  tennis:     {e:'🎾', n:'Tennis',      lvl:'hard', len:2},
+  football:   {e:'⚽', n:'Football',    lvl:'hard', len:2},
+  running:    {e:'🏃', n:'Running',     lvl:'hard', len:1},
+  golf:       {e:'⛳', n:'Golf',        lvl:'hard', len:4},
+  swimming:   {e:'🏊', n:'Swimming',    lvl:'hard', len:1},
+  cycling:    {e:'🚴', n:'Cycling',     lvl:'hard', len:2},
+  basketball: {e:'🏀', n:'Basketball',  lvl:'hard', len:2},
+  hangout:    {e:'🛹', n:'Hanging out', lvl:'easy', len:2},
+  walking:    {e:'🚶', n:'Walking',     lvl:'easy', len:1}};
+const WINDOWS = {e:'🪟', n:'Windows', lvl:'win', len:2};
 const LIM = {hard:[50,100], easy:[100,200], win:[50,100]};
-const VERD = {hard:['✅ Go for it','⚠️ Go easy','❌ Skip it'], easy:['✅ Yes','⚠️ Keep it short','❌ Stay in'], win:['✅ Open up','⚠️ Just a bit','❌ Keep shut']};
+const VERD = {hard:['Go','Go easy','Not now'], easy:['Go','Keep it short','Stay in'], win:['Open them','A crack','Keep shut']};
 const rate = (lvl, a) => { const L = LIM[lvl], r = Math.round(a); return r <= L[0] ? 0 : r <= L[1] ? 1 : 2; };
 function winMax(p, k, len){ let m = -1; for (let j = k; j < k + len; j++){ const v = p.pm[j]; if (v == null) return null; m = Math.max(m, api(v)); } return m; }
 const okHour = (x, h) => x.lvl === 'win' ? h >= 6 && h + x.len <= 23 : h >= 6 && h + x.len <= 20;
@@ -553,39 +580,19 @@ function bestWin(p, x){
     if (!best || v < best.v - 1) best = {k, v}; }
   return best;
 }
+const myThings = () => { const t = store.get('hw-things', null); return Array.isArray(t) ? t.filter(k => THINGS[k]) : null; };
+const spanTxt = (k, len) => { const dw = dayWord(idx(k)); return hh(idx(k)) + '–' + hh(idx(k + len)) + dw; };
+function judge(p, a, x){
+  const nowH = myt(NOW).getUTCHours(), nv = winMax(p, 24, x.len);
+  const r = nv == null ? (a.nb > 1 ? 2 : 0) : rate(x.lvl, nv), best = bestWin(p, x);
+  let when = '';
+  if (best){ const br = rate(x.lvl, best.v);
+    if (okHour(x, nowH) && nv != null && best.v >= nv - 2) when = r === 0 ? 'Right now is ideal' : r === 1 ? 'Now is as good as it gets' : 'No better slot before tomorrow night';
+    else if (br === 2) when = 'Even the best slot, ' + spanTxt(best.k, x.len) + ', is unhealthy';
+    else when = 'Best ' + spanTxt(best.k, x.len) + (br < r ? ', when it’s cleaner' : ''); }
+  return {r, when, best};
+}
 
-/* ================= now view ================= */
-function heroHTML(p, a){
-  const b = BANDS[a.nb], tr = trend(p, a);
-  return '<article class="card hero span2" id="hero" style="--hc:' + b.c + '">' +
-    '<div class="hero-top"><div><div class="hplace">' + esc(p.name) + '</div><div class="hwhen">' + (p.id === HERE_ID ? '📍 You’re here · ' : '') + 'Air right now · ' + hh(NOW) + (p.here ? ' · <button type="button" class="savehere" data-savehere>＋ Save place</button>' : '') + '</div></div><button type="button" class="ibtn" data-go="places" aria-label="Switch place">⇄</button></div>' +
-    '<div class="hero-mid"><button type="button" class="puffbtn" id="puffBtn" aria-label="Tap Puff for a tip">' + puff(a.nb, 'big') + '<span class="bubble" id="bubble"></span></button>' +
-    '<div class="hnum"><div class="num' + (Math.round(a.nowApi) >= 100 ? ' n3' : '') + '" id="heroNum">' + Math.round(a.nowApi) + '</div><div class="unit">API</div><span class="sticker">' + b.name + '</span></div></div>' +
-    '<p class="tag">' + b.tag + '</p>' + (tr ? '<p class="trend"><b>' + tr.ic + '</b>' + esc(tr.t) + '</p>' : '') +
-    '<div class="mchips">' + sourceChip(p) + '</div></article>';
-}
-function actsHTML(p, a){
-  const nowH = myt(NOW).getUTCHours();
-  const tiles = ACTS.map(x => {
-    const nv = winMax(p, 24, x.len), r = nv == null ? bandOf(a.nowApi) > 1 ? 2 : 0 : rate(x.lvl, nv), best = bestWin(p, x);
-    let sub = '';
-    if (best){ const br = rate(x.lvl, best.v);
-      if (okHour(x, nowH) && nv != null && best.v >= nv - 2) sub = r === 0 ? 'Now is perfect ✨' : r === 1 ? 'Now is as good as it gets today' : 'No better time before tmrw night';
-      else if (br === 2) sub = 'Even the best slot is unhealthy 😬';
-      else sub = 'Best ' + hh(idx(best.k)) + '–' + hh(idx(best.k + x.len)) + dayWord(idx(best.k)) + (br < r ? ' 👍' : ''); }
-    return '<div class="act v' + r + '"><div class="ae">' + x.e + '</div><div class="an">' + x.n + '</div><div class="av">' + VERD[x.lvl][r] + '</div><div class="as">' + esc(sub) + '</div></div>'; });
-  const mr = a.nb <= 1 ? 0 : a.nb === 2 ? 1 : 2;
-  tiles.push('<div class="act v' + mr + '"><div class="ae">😷</div><div class="an">Need a mask?</div><div class="av">' + ['✅ Nope','⚠️ N95 outside','❌ N95, stay in'][mr] + '</div><div class="as">Cloth masks don’t stop haze. N95 or KF94 do.</div></div>');
-  return '<article class="card span2 pop"><h2><span class="em">🤔</span>Can I…?</h2><p class="sub">At ' + esc(p.name) + ', judged on the worst hour you’d be out, so it can be stricter than the big number.</p><div class="acts">' + tiles.join('') + '</div><p class="tiny">Got asthma or a cough? Treat ⚠️ like ❌.</p></article>';
-}
-function hourlyHTML(p, a){
-  const vals = []; let vmax = 110;
-  for (let k = 24; k <= 48; k++){ const v = p.pm[k] == null ? null : api(p.pm[k]); vals.push(v); if (v != null) vmax = Math.max(vmax, v); }
-  const bars = vals.map((v, i) => { if (v == null) return ''; const k = 24 + i;
-    return '<div class="hb' + (i === 0 ? ' now' : '') + '"><span class="hs">' + (p.sc[k] >= 100 ? '💨' : '') + '</span><div class="tr"><span class="hv">' + Math.round(v) + '</span><i style="height:' + Math.max(5, v/vmax*100).toFixed(1) + '%;background:' + BANDS[bandOf(v)].c + ';animation-delay:' + (i*22) + 'ms"></i></div><span class="ht">' + (i === 0 ? 'Now' : hh(idx(k))) + '</span></div>'; }).join('');
-  const tr = trend(p, a);
-  return '<article class="card span2 pop"><h2><span class="em">⏱️</span>Next 24 hours</h2><p class="sub">' + esc(tr ? tr.t : '') + (a.sCat >= 1 ? '. 💨 = fire smoke tracked overhead.' : '.') + '</p><div class="bars">' + bars + '</div></article>';
-}
 function adjusted(p){
   const c = p.cams, o = p.obs && p.obs.pm != null ? p.obs.pm : null; if (o == null || c[24] == null) return null;
   const gap = o - c[24], out = [];
@@ -599,7 +606,7 @@ function realityHTML(p, a){
   else if (a.obsApi == null) msg = 'No station within 25 km of here, so it’s forecast only.';
   else { const gap = Math.round(a.obsApi - a.camsNow);
     msg = (p.obs.type === 'sensor' ? 'The local sensor says ' : p.obs.parts && p.obs.parts.length > 1 ? 'The nearby DOE stations say ' : 'The DOE station says ') + Math.round(a.obsApi) + '. ' +
-      (Math.abs(gap) < 10 ? 'The forecast nailed it 🎯' : 'The forecast said ' + Math.round(a.camsNow) + ', so real air is ' + (gap > 0 ? 'worse' : 'better') + ' than predicted ' + (gap > 0 ? '😬' : '😮‍💨') + '. We nudge the next hours to match.');
+      (Math.abs(gap) < 10 ? 'The forecast got it right.' : 'The forecast alone said ' + Math.round(a.camsNow) + ', so the real air is ' + (gap > 0 ? 'worse' : 'better') + ' than predicted. The next hours are nudged to match.');
     if (obsN < 6) msg += ' (Readings build up every hour: ' + obsN + ' so far.)'; }
   const parts = p.obs && p.obs.parts && p.obs.parts.length > 1 ? ' Blend of ' + p.obs.parts.map(x => esc(x.station) + ' (' + Math.round(api(x.pm)) + ', ' + x.km + ' km)').join(' and ') + ', the closer one counting more.' : '';
   const anchor = (p.obs && p.obs.anchor ? ' Nearest DOE reading: ' + esc(p.obs.anchor.station) + ', ' + p.obs.anchor.km + ' km, ' + Math.round(api(p.obs.anchor.pm)) + '.' : '') + parts;
@@ -659,7 +666,7 @@ function smokeHTML(p, a){
   const conf = ['🤷 Not very sure','🤔 Kinda sure','💪 Pretty sure'][a.conf], why = ['The forecast and our smoke tracking disagree.','The forecast and our smoke tracking partly agree.','The forecast and our smoke tracking agree.'][a.conf];
   return '<article class="card pop"><h2><span class="em">💨</span>Where’s the smoke from?</h2><p class="lead">' + esc(head) + '</p>' + bars +
     '<div class="windrow">' + comp + '<div><b>Wind from the ' + CW[compass(w[0])] + ', ' + kmh + ' km/h</b><p class="sub" style="margin:4px 0 0">Smoke rides this wind about 1.5 km up. That’s ' + Math.round(w[1]*86.4) + ' km a day.</p></div></div>' + rain +
-    '<p class="tiny"><span class="pill">' + conf + '</span> ' + why + '</p><button type="button" class="btn" data-go="map">Watch the smoke move →</button></article>';
+    '<p class="tiny"><span class="pill">' + conf + '</span> ' + why + '</p><button type="button" class="btn" data-go="map">Watch the smoke move</button></article>';
 }
 function daysHTML(p, a){
   const rows = [];
@@ -696,17 +703,118 @@ function bannersHTML(p, a){
   if (D.meta.firesStale) s += '<div class="banner"><span class="e">🛰️</span><div><b>Fire map not updated this hour</b>NASA didn’t reply, so the smoke uses the last fire picture. Air readings are still fresh.</div></div>';
   return s;
 }
+/* ================= now view ================= */
+const CHEV = '<svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>';
+const TREND = {up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17 10 11l4 4 6-7"/><path d="M15 8h5v5"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l6 6 4-4 6 7"/><path d="M15 16h5v-5"/></svg>',
+  flat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M15 8l4 4-4 4"/></svg>'};
+const YEAR = [1979, 1996, 2014, 2030, 2044];        // Climate Crisis melts as the air gets worse
+function heroHTML(p, a){
+  const b = BANDS[a.nb], tr = trend(p, a), n = Math.round(a.nowApi), here = p.id === HERE_ID;
+  const dots = D.places.length > 1 ? '<div class="dots" aria-hidden="true">' + D.places.map((_, i) => '<i class="' + (i === SEL ? 'on' : '') + '"></i>').join('') + '</div>' : '';
+  return '<section class="hero" id="hero" aria-label="Air right now at ' + esc(p.name) + '">' +
+    '<div class="hrow"><button type="button" class="placepill" data-go="places" aria-label="Switch place">' + (here ? '📍 ' : '') + esc(p.name) + CHEV + '</button>' + dots + '</div>' +
+    '<div class="stage"><div class="num' + (n >= 100 ? ' n3' : '') + '" id="heroNum" aria-label="API ' + n + '">' + n + '</div>' +
+    '<button type="button" class="puffbtn" id="puffBtn" aria-label="Tap Puff for a tip">' + puff(a.nb, 'big') + '<span class="bubble" id="bubble"></span></button></div>' +
+    '<div class="bandname"><b>' + b.name + '</b><span>API at ' + hh(NOW) + (here ? ', where you are' : '') + '</span></div>' +
+    '<p class="tag">' + b.tag + '</p>' +
+    (tr ? '<p class="trend">' + TREND[tr.ic === '↗' ? 'up' : tr.ic === '↘' ? 'down' : 'flat'] + esc(tr.t) + '</p>' : '') +
+    '<div class="mchips">' + sourceChip(p) + (p.here ? '<button type="button" class="savehere" data-savehere>＋ Save this place</button>' : '') + '</div></section>';
+}
+function mineHTML(p, a){
+  const mine = myThings() || [], first = THINGS[mine[0]];
+  let top = '';
+  if (first){ const j = judge(p, a, first);
+    top = '<section class="panel v' + j.r + '"><div class="ph"><h2>' + first.n + ' today</h2><button type="button" class="linkbtn" data-things>Change</button></div>' +
+      '<div class="mine"><span class="ic">' + first.e + '</span><span class="nm">' + esc(first.n) + ' at ' + esc(short(p)) + '</span><span class="verdict"><i></i>' + VERD[first.lvl][j.r] + '</span><span class="when">' + esc(j.when) + '</span></div></section>'; }
+  else top = '<section class="panel"><div class="ph"><h2>Your activities</h2></div><p class="lead" style="margin-top:8px">Tell us what you do outside and we’ll say when to do it.</p><button type="button" class="btn" data-things>Pick activities</button></section>';
+  const rest = mine.slice(1).map(k => THINGS[k]).concat([WINDOWS]);
+  const minis = rest.map(x => { const j = judge(p, a, x); return '<div class="mini-t v' + j.r + '" title="' + esc(j.when) + '"><span class="e">' + x.e + '</span><span><b>' + x.n + '</b><span class="vw">' + VERD[x.lvl][j.r] + '</span></span></div>'; });
+  const mr = a.nb <= 1 ? 0 : a.nb === 2 ? 1 : 2;
+  minis.push('<div class="mini-t v' + mr + '" title="Cloth masks don’t stop haze. N95 or KF94 do."><span class="e">😷</span><span><b>Mask</b><span class="vw">' + ['Not needed','N95 outside','N95, stay in'][mr] + '</span></span></div>');
+  return top + '<div class="others" aria-label="Other activities">' + minis.join('') + '</div>';
+}
+// hour-by-hour from now to the end of tomorrow; outlines the best slot for your first activity
+function planHTML(p, a){
+  const end = midnight(2), first = THINGS[(myThings() || [])[0]], best = first ? bestWin(p, first) : null;
+  let cells = '';
+  for (let k = 24; k < p.pm.length; k++){ const t = idx(k); if (t >= end) break; const v = p.pm[k]; if (v == null) continue;
+    const ap = api(v), h = myt(t).getUTCHours(), inBest = best && k >= best.k && k < best.k + first.len;
+    const lab = k === 24 ? 'Now' : h % 3 === 0 ? hh(t) : '';
+    cells += '<button type="button" class="hc' + (h < 6 || h >= 21 ? ' night' : '') + (inBest ? ' best' : '') + (k === 24 ? ' sel' : '') + (h === 0 && k !== 24 ? ' day' : '') + '" data-hour="' + k + '"' + (h === 0 ? ' data-day="' + DOW[myt(t).getUTCDay()] + '"' : '') + ' aria-label="' + hh(t) + ' API ' + Math.round(ap) + '">' +
+      (k === 24 || h % 3 === 0 ? '<span class="v">' + Math.round(ap) + '</span>' : '') + '<i style="background:' + BANDS[bandOf(ap)].c + '"></i><span>' + lab + '</span></button>'; }
+  const note = best ? 'Outlined: best time for ' + first.n.toLowerCase() + ', ' + spanTxt(best.k, first.len) + '.' : 'Tap an hour to see it.';
+  return '<section class="panel plan"><div class="ph"><h2>Today and tomorrow</h2></div><div class="strip" id="strip">' + cells + '</div><p class="planread" id="planread">' + esc(note) + '</p></section>';
+}
+function showHour(k){
+  const p = D.places[SEL], v = api(p.pm[k]), t = idx(k);
+  $$('#strip .hc').forEach(c => c.classList.toggle('sel', +c.dataset.hour === k));
+  $('#planread').innerHTML = '<b>' + (k === 24 ? 'Now' : when(t)) + '</b>: API ' + Math.round(v) + ', ' + BANDS[bandOf(v)].name.toLowerCase() + (p.sc[k] >= 100 ? ', with fire smoke overhead' : '') + (p.rn && p.rn[k] >= 1 ? ', rain' : '') + '.';
+}
+const DEEP = [
+  {id:'reality', e:'🔍', t:'Reality check', sub:(p, a) => a.obsApi != null ? 'Stations ' + Math.round(a.obsApi) + ', forecast alone ' + Math.round(a.camsNow) : 'Forecast only here', build:realityHTML, wide:true},
+  {id:'smoke', e:'💨', t:'Where the smoke is from', sub:(p, a) => a.sCat ? SMOKE[a.sCat] + ' heading this way' : 'No fire smoke heading this way', build:smokeHTML},
+  {id:'days', e:'📅', t:'Next few days', sub:(p, a) => { const v = p.pm.slice(49).filter(x => x != null).map(api); return v.length ? 'Between ' + Math.round(Math.min(...v)) + ' and ' + Math.round(Math.max(...v)) : ''; }, build:daysHTML},
+  {id:'fires', e:'🔥', t:'Fires right now', sub:() => D.meta.hotspots24.toLocaleString('en-GB') + ' hotspots in 24 hours', build:() => firesHTML()},
+  {id:'check', e:'🎯', t:'How good are our guesses?', sub:() => Object.keys(D.accuracy || {}).length ? 'Scored against the stations' : 'Still collecting', build:() => checkHTML()}];
+const CHEVR = '<svg viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l6 6-6 6"/></svg>';
+function deepHTML(p, a){
+  const rows = DEEP.map(d => '<button type="button" class="row" data-deep="' + d.id + '"><span class="e">' + d.e + '</span><span class="t">' + d.t + '<small>' + esc(d.sub(p, a)) + '</small></span>' + CHEVR + '</button>').join('');
+  const wide = innerWidth >= 900;
+  return '<section class="deep"><h2>Dig deeper</h2><div class="rows">' + rows + '</div>' + (wide ? '<div class="deepgrid">' + DEEP.map(d => d.build(p, a).replace('class="card', 'class="card' + (d.wide ? ' wide' : ''))).join('') + '</div>' : '') + '</section>';
+}
+function openDeep(id){
+  const d = DEEP.find(x => x.id === id), p = D.places[SEL], a = A[SEL]; if (!d) return;
+  $('#infoT').textContent = d.t;
+  $('#infoBody').innerHTML = d.build(p, a).replace(/<h2>.*?<\/h2>/, '');
+  openSheet('infoSheet');
+  if (id === 'reality') requestAnimationFrame(drawCompare);
+  if (id === 'smoke' && !REDUCED) requestAnimationFrame(() => requestAnimationFrame(() => { const ar = $('#infoBody #arrow'); if (ar) ar.style.transform = 'rotate(' + ((p.wd[0][0] + 180) % 360) + 'deg)'; }));
+}
+function openSheet(id){ $('#scrim').classList.add('on'); document.getElementById(id).classList.add('on'); }
+function closeSheets(){ $('#scrim').classList.remove('on'); $$('.sheet.on').forEach(s => s.classList.remove('on')); if (document.activeElement) document.activeElement.blur(); }
+
+/* first run: what do you do outside? */
+let PICKS = [];
+function openThings(){
+  PICKS = (myThings() || []).slice();
+  renderThings(); openSheet('thingsSheet');
+}
+function renderThings(){
+  $('#thingsList').innerHTML = Object.entries(THINGS).map(([k, x]) => { const i = PICKS.indexOf(k);
+    return '<button type="button" class="thing" data-thing="' + k + '" aria-pressed="' + (i >= 0) + '"><span class="e">' + x.e + '</span>' + x.n + (i === 0 ? '<span class="o" aria-label="first pick">1st</span>' : '') + '</button>'; }).join('');
+}
+function thingsDone(){
+  store.set('hw-things', PICKS.length ? PICKS : ['hangout']);
+  closeSheets(); renderThingsSum(); if (D) renderNow(0);
+}
+function renderThingsSum(){ const t = myThings(); const el = $('#thingsSum'); if (el) el.textContent = t && t.length ? t.map(k => THINGS[k].e + ' ' + THINGS[k].n).join(', ') : 'Pick what you do outside'; }
+
 function renderNow(anim){
-  const p = D.places[SEL], a = A[SEL];
-  const ban = bannersHTML(p, a);
-  $('#nowGrid').innerHTML = heroHTML(p, a) + (ban ? '<div class="banners span2">' + ban + '</div>' : '') + actsHTML(p, a) + hourlyHTML(p, a) + realityHTML(p, a) + smokeHTML(p, a) + daysHTML(p, a) + firesHTML() + checkHTML();
-  if (REDUCED) $$('#nowGrid .pop').forEach(c => c.classList.remove('pop')); else $$('#nowGrid .pop').forEach((c, i) => c.style.animationDelay = (i*60) + 'ms');
-  const hero = $('#hero'); if (anim){ hero.style.setProperty('--dx', anim + 'px'); hero.classList.add('swap'); }
-  countTo($('#heroNum'), Math.round(a.nowApi));
-  drawCompare();
-  if (!REDUCED) requestAnimationFrame(() => requestAnimationFrame(() => { const ar = $('#arrow'); if (ar) ar.style.transform = 'rotate(' + ((p.wd[0][0] + 180) % 360) + 'deg)'; }));
+  const p = D.places[SEL], a = A[SEL], ban = bannersHTML(p, a);
+  $('#nowWrap').innerHTML = '<div class="nowgrid"><div>' + heroHTML(p, a) + '</div><div>' + (ban ? '<div class="banners">' + ban + '</div>' : '') + mineHTML(p, a) + planHTML(p, a) +
+    '<button type="button" class="sharebtn" data-share><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Share today’s air</button>' +
+    deepHTML(p, a) + '</div></div>';
+  const hero = $('#hero'), num = $('#heroNum');
+  if (anim){ hero.style.setProperty('--dx', anim + 'px'); hero.classList.add('swap'); }
+  countTo(num, Math.round(a.nowApi));
+  fitNum(num);
+  // the melt: start solid, then let the digits slump to this band's year
+  const yr = YEAR[a.nb];
+  if (REDUCED || shownYear === yr){ num.style.setProperty('--yr', yr); }
+  else { num.style.setProperty('--yr', shownYear == null ? 1979 : shownYear); requestAnimationFrame(() => requestAnimationFrame(() => num.style.setProperty('--yr', yr))); }
+  shownYear = yr;
+  if (innerWidth >= 900){ drawCompare(); if (!REDUCED) requestAnimationFrame(() => requestAnimationFrame(() => { const ar = $('#arrow'); if (ar) ar.style.transform = 'rotate(' + ((p.wd[0][0] + 180) % 360) + 'deg)'; })); }
   $('#puffBtn').addEventListener('click', tapPuff);
   swipeHero();
+  const st = $('#strip'); if (st) st.scrollLeft = 0;
+}
+let shownYear = null;
+function fitNum(num){
+  num.style.fontSize = ''; num.style.fontVariationSettings = '"YEAR" 1979';
+  const avail = num.parentElement.clientWidth * (num.textContent.length >= 3 ? .72 : .8), fs = parseFloat(getComputedStyle(num).fontSize), w = num.scrollWidth;
+  if (w > avail) num.style.fontSize = Math.floor(fs * avail / w) + 'px';
+  num.style.fontVariationSettings = '';
 }
 function countTo(el, to){
   const from = shownNum == null ? to : shownNum; shownNum = to;
@@ -730,11 +838,39 @@ function swipeHero(){
     if (Math.abs(dx) > 60 && Math.abs(dy) < 50) select(SEL + (dx < 0 ? 1 : -1), dx < 0 ? 40 : -40); }, {passive:true});
 }
 
-/* ================= places: chips + leaderboard ================= */
-function renderChips(){
-  $('#chips').innerHTML = D.places.map((p, i) => '<button type="button" class="chip' + (i === SEL ? ' on' : '') + '" data-pick="' + i + '" aria-pressed="' + (i === SEL) + '"><span class="d" style="background:' + BANDS[A[i].nb].c + '">' + Math.round(A[i].nowApi) + '</span>' + (p.id === HERE_ID ? '📍 ' : '') + esc(p.name) + '</button>').join('') + '<button type="button" class="chip add" data-add aria-label="Add a place">＋</button>';
-  const on = $('#chips .chip.on'); if (on && on.scrollIntoView) on.scrollIntoView({inline:'center', block:'nearest', behavior: REDUCED ? 'auto' : 'smooth'});
+/* share: a story-sized picture of today's air */
+async function shareCard(){
+  const p = D.places[SEL], a = A[SEL], b = a.nb, col = ['#57b6ff','#3edc8e','#ffd23f','#ff8a3d','#ff4f6d'][b], ink = '#17142a';
+  const W = 1080, Hc = 1920, c = document.createElement('canvas'); c.width = W; c.height = Hc; const x = c.getContext('2d');
+  try { await Promise.all([document.fonts.load('400 300px "Climate Crisis"'), document.fonts.load('800 60px Figtree')]); } catch (e) {}
+  x.fillStyle = col; x.fillRect(0, 0, W, Hc);
+  x.fillStyle = 'rgba(255,255,255,.18)'; for (let i = 0; i < 40; i++) for (let j = 0; j < 22; j++) if ((i + j) % 2 === 0){ x.beginPath(); x.arc(40 + j*48, 40 + i*48, 3, 0, 6.3); x.fill(); }
+  const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(puff(b, '').replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="560" height="420" '));
+  try { await img.decode(); x.drawImage(img, W - 620, 250, 560, 420); } catch (e) {}
+  x.fillStyle = ink; x.textBaseline = 'alphabetic';
+  x.font = '800 54px Figtree'; x.fillText(p.name.length > 26 ? short(p) : p.name, 90, 190);
+  x.font = '700 38px Figtree'; x.globalAlpha = .75; x.fillText(dayName(NOW) + ', ' + hh(NOW), 90, 245); x.globalAlpha = 1;
+  const n = String(Math.round(a.nowApi)); let fs = 520; x.font = '400 ' + fs + 'px "Climate Crisis"'; while (x.measureText(n).width > W - 160 && fs > 200){ fs -= 20; x.font = '400 ' + fs + 'px "Climate Crisis"'; }
+  x.fillText(n, 80, 1060);
+  x.font = '900 84px Figtree'; x.fillText(BANDS[b].name, 90, 1190);
+  x.font = '700 52px Figtree'; const words = BANDS[b].tag.split(' '); let line = '', y = 1280;
+  words.forEach(w => { const t = line ? line + ' ' + w : w; if (x.measureText(t).width > W - 180){ x.fillText(line, 90, y); line = w; y += 66; } else line = t; }); x.fillText(line, 90, y);
+  const first = THINGS[(myThings() || [])[0]];
+  if (first){ const j = judge(p, a, first); x.font = '800 50px Figtree'; x.fillText(first.e + '  ' + first.n + ': ' + VERD[first.lvl][j.r], 90, y + 110); }
+  x.fillRect(90, Hc - 210, W - 180, 4);
+  x.font = '900 58px Figtree'; x.fillText('haze watch', 90, Hc - 120);
+  x.font = '700 32px Figtree'; x.globalAlpha = .75; x.fillText('Malaysian API from DOE stations. A rough guide.', 90, Hc - 70); x.globalAlpha = 1;
+  const blob = await new Promise(r => c.toBlob(r, 'image/png')); if (!blob){ toast('Couldn’t make the picture'); return; }
+  const file = new File([blob], 'haze-watch-' + short(p).replace(/\W+/g, '-').toLowerCase() + '.png', {type:'image/png'});
+  try {
+    if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Haze Watch'}); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const u = URL.createObjectURL(blob), l = document.createElement('a'); l.href = u; l.download = file.name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+  toast('Picture saved');
 }
+
+/* ================= places: chips + leaderboard ================= */
+function renderChips(){}   // the place pill and dots are drawn with the hero
 let EDIT = false;
 function lbHTML(){
   const order = D.places.map((p, i) => i).sort((x, y) => A[x].nowApi - A[y].nowApi);
@@ -742,17 +878,17 @@ function lbHTML(){
     const pk = a.peakApi > a.nowApi + 5 ? 'Up to ' + Math.round(a.peakApi) + ' around ' + when(idx(a.peakK)) : 'Steady or easing';
     const tag = (p.id === HERE_ID ? '<span class="yours here">you’re here</span>' : '') + (p.custom ? '<span class="yours">yours</span>' : '');
     const end = EDIT && p.here ? '' : EDIT ? '<button type="button" class="del" data-del="' + esc(p.id) + '" aria-label="Remove ' + esc(p.name) + '">🗑️</button>' : '<span class="vl" style="background:' + b.c + '">' + Math.round(a.nowApi) + '</span>';
-    return '<div role="button" tabindex="0" class="lb' + (i === SEL && !EDIT ? ' sel' : '') + (EDIT ? ' editing' : '') + '"' + (EDIT ? '' : ' data-pick="' + i + '"') + '><span class="rk">' + (r + 1) + '</span><span class="mini">' + puff(a.nb, '') + '</span><span class="tx"><span class="nm">' + esc(p.name) + tag + (r === 0 && !EDIT ? ' <span class="crown">👑</span>' : '') + '</span><span class="ds">' + (EDIT ? (p.custom ? 'Added on this device' : 'Main place') : b.name + ' · ' + esc(pk)) + '</span></span>' + end + '</div>'; }).join('') +
+    return '<div role="button" tabindex="0" class="lb' + (i === SEL && !EDIT ? ' sel' : '') + (EDIT ? ' editing' : '') + '"' + (EDIT ? '' : ' data-pick="' + i + '"') + '><span class="rk">' + (r + 1) + '</span><span class="mini">' + puff(a.nb, '') + '</span><span class="tx"><span class="nm">' + esc(p.name) + tag + (r === 0 && !EDIT ? ' <span class="crown">👑</span>' : '') + '</span><span class="ds">' + (EDIT ? (p.custom ? 'Added on this device' : 'Main place') : b.name + ', ' + esc(pk.charAt(0).toLowerCase() + pk.slice(1))) + '</span></span>' + end + '</div>'; }).join('') +
     (PEND.length ? PEND.map(c => '<div class="lb editing"><span class="rk">…</span><span class="mini">' + puff(1, '') + '</span><span class="tx"><span class="nm">' + esc(c.name) + '<span class="yours">yours</span></span><span class="ds">' + (c.fail ? 'Couldn’t load. Pull down to retry.' : 'Loading the air here…') + '</span></span>' + (EDIT ? '<button type="button" class="del" data-del="' + esc(c.id) + '" aria-label="Remove ' + esc(c.name) + '">🗑️</button>' : '') + '</div>').join('') : '');
 }
 function restoreHTML(){
   if (!EDIT) return '';
   const hid = store.get('hw-hidden', []), base = D.base.filter(p => hid.includes(p.id));
-  return base.length ? '<p class="tiny" style="margin:4px 0 0;font-weight:800">Hidden on this device</p>' + base.map(p => '<div class="row">' + esc(p.name) + '<button type="button" class="sbtn" data-unhide="' + esc(p.id) + '">↩︎ Bring back</button></div>').join('') : '';
+  return base.length ? '<p class="tiny" style="margin:4px 0 0;font-weight:800">Hidden on this device</p>' + base.map(p => '<div class="row2">' + esc(p.name) + '<button type="button" class="sbtn" data-unhide="' + esc(p.id) + '">Bring back</button></div>').join('') : '';
 }
 function renderPlaces(){
   const h = lbHTML(), r = restoreHTML(); $('#placeList').innerHTML = h; $('#sideList').innerHTML = h; $('#placeRestore').innerHTML = r; $('#sideRestore').innerHTML = r;
-  $$('[data-edit]').forEach(b => { b.classList.toggle('on', EDIT); b.textContent = EDIT ? '✓ Done' : '✏️ Edit'; });
+  $$('[data-edit]').forEach(b => { b.classList.toggle('on', EDIT); b.textContent = EDIT ? 'Done' : 'Edit'; });
 }
 
 /* ================= map ================= */
@@ -877,10 +1013,10 @@ function faqHTML(){
   const scale = '<div class="scale">' + [['0–50','Good'],['51–100','Moderate'],['101–200','Unhealthy'],['201–300','Very unhealthy'],['300+','Hazardous']].map((r, i) => '<div><b style="background:' + BANDS[i].c + '">' + r[0] + '</b>' + r[1] + '</div>').join('') + '</div>';
   return q('What does the big number mean?', '<p>It’s the <b>API</b> (Air Pollutant Index), Malaysia’s official air score. Lower is better.</p>' + scale + '<p>Right now it’s DOE’s own number from the nearest station, the same one APIMS shows. The hours ahead come from our forecast, which works in PM2.5 (the tiny smoke bits that make haze) and is converted with DOE’s own table.</p>', true) +
     q('Why might it differ from the APIMS app?', '<p>The “now” number is DOE’s own API from the nearest station, so it should match APIMS for that station. It can differ a little when two stations are about equally close: then we <b>blend</b> them, with the closer one counting more. We update every hour, so APIMS may be one reading ahead.</p><p>We sometimes use a <b>local sensor</b> right next to the place, but only if it agrees with the DOE stations. With no station nearby we use the forecast.</p><p>For the official number, check <a href="https://eqms.doe.gov.my/APIMS/main" target="_blank" rel="noopener">APIMS</a>.</p>') +
-    q('How do you predict the haze?', '<p>Every hour a robot (well, a script 🤖) does four things:</p><p>1. Grabs every fire NASA’s satellites spotted in the last two days.<br>2. Gets the wind and rain forecast.<br>3. Pushes pretend smoke from each fire along the wind, to see where it ends up.<br>4. Starts from the real reading near each place and blends into Copernicus’s air forecast.</p><p>The smoke tracking is rough, so trust it for direction and timing more than exact numbers.</p>') +
-    q('How does “Can I…?” decide?', '<p>Hard exercise (sport, running, golf) gets ✅ up to API 50 and ⚠️ up to 100. Hanging out or walking gets ✅ up to 100 and ⚠️ up to 200. Windows open up to 50.</p><p>We look at the worst hour in the time you’d be out, and suggest the cleanest slot from 6am to 8pm today or tomorrow. If you have asthma or a cough, be one step more careful.</p>') +
-    q('Why does it jump to where I am?', '<p>Each time you open or refresh the app, it checks where your phone is. If you’re at one of your places, it opens on that one (📍). If you’re somewhere new, it works out the air right there and shows it first, with a <b>＋ Save place</b> button if you want to keep it.</p><p>Your location stays on your phone; the forecast services only get it rounded to about 1 km. Turn this off on the Places tab: <b>📍 Open on where I am</b>.</p>') +
-    q('Can I add my own places?', '<p>Yes. Tap <b>＋</b> next to the places at the top, or <b>＋ Add</b> on the Places tab. Search for somewhere or use where you are now, then give it a name.</p><p>To remove one, tap <b>✏️ Edit</b> on the Places tab, then 🗑️. Removing one of the main places only hides it on your device, and you can bring it back from the same screen.</p><p>Places you add stay on your device, not on the website. They get the same forecast and nearby station readings, but not the smoke-source breakdown or the 24-hour reading history.</p>') +
+    q('How do you predict the haze?', '<p>Every hour a script does four things:</p><p>1. Grabs every fire NASA’s satellites spotted in the last two days.<br>2. Gets the wind and rain forecast.<br>3. Pushes pretend smoke from each fire along the wind, to see where it ends up.<br>4. Starts from the real reading near each place and blends into Copernicus’s air forecast.</p><p>The smoke tracking is rough, so trust it for direction and timing more than exact numbers.</p>') +
+    q('How are the activity verdicts worked out?', '<p>Sport and running get <b>Go</b> up to API 50 and <b>Go easy</b> up to 100. Walking and hanging out get <b>Go</b> up to 100 and <b>Keep it short</b> up to 200. Windows open up to 50. Change your activities on the Places tab.</p><p>We look at the worst hour in the time you’d be out, and suggest the cleanest slot from 6am to 8pm today or tomorrow. If you have asthma or a cough, treat Go easy as Not now.</p>') +
+    q('Why does it jump to where I am?', '<p>Each time you open or refresh the app, it checks where your phone is. If you’re at one of your places, it opens on that one (📍). If you’re somewhere new, it works out the air right there and shows it first, with a <b>＋ Save place</b> button if you want to keep it.</p><p>Your location stays on your phone; the forecast services only get it rounded to about 1 km. Turn this off on the Places tab: <b>Open on where I am</b>.</p>') +
+    q('Can I add my own places?', '<p>Yes. On the Places tab, tap <b>Add</b>. Search for somewhere or use where you are now, then give it a name.</p><p>To remove one, tap <b>Edit</b> on the Places tab, then 🗑️. Removing one of the main places only hides it on your device, and you can bring it back from the same screen.</p><p>Places you add stay on your device, not on the website. They get the same forecast and nearby station readings, but not the smoke-source breakdown or the 24-hour reading history.</p>') +
     q('Do masks help?', '<p>Normal cloth or surgical masks don’t stop haze very well. An <b>N95</b> or <b>KF94</b> that fits snugly does. Indoors, keep windows shut and run an air purifier.</p>') +
     q('Where does the data come from?', '<p>Fires: NASA FIRMS (VIIRS satellites). Wind, rain and PM2.5 forecast: Open-Meteo with Copernicus CAMS data (CC BY 4.0). Live readings: DOE stations and local sensors via WAQI. Map: Natural Earth.</p><p>For DOE stations, WAQI passes on DOE’s official API. Local sensors report on the US scale, which we convert, so treat small differences from them with a pinch of salt.</p>') +
     q('Is this official?', '<p>No. Haze Watch is a family project and a rough guide. It isn’t a health service. If you feel unwell, tell an adult or see a doctor.</p>');
@@ -888,14 +1024,17 @@ function faqHTML(){
 
 /* ================= render ================= */
 function setBand(b){
-  document.body.style.setProperty('--bandc', BANDS[b].c);
-  $('#hazefx').style.opacity = [0, 0, .35, .6, .8][b];
+  document.documentElement.style.setProperty('--bandc', BANDS[b].c);
+  document.documentElement.style.setProperty('--yr', YEAR[b]);
+  $('#hazefx').style.opacity = [0, 0, .3, .55, .75][b];
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  $('#themeColor').setAttribute('content', dark ? '#100d1b' : ['#57b6ff','#3edc8e','#ffd23f','#ff8a3d','#ff4f6d'][b]);
 }
 function renderMeta(){
   const gen = Date.parse(D.meta.generated), age = (Date.now() - gen)/H;
   $('#updT').textContent = age > 3 ? Math.round(age) + 'h old' : hhmm(gen);
   $('#upd').classList.toggle('old', age > 3);
-  $('#foot').innerHTML = 'Updated ' + dayName(gen) + ', ' + hhmm(gen) + ' · refreshes every hour<br>NASA FIRMS · Open-Meteo / Copernicus CAMS · WAQI · Natural Earth<br>A rough guide, not official readings.';
+  $('#foot').innerHTML = 'Updated ' + dayName(gen) + ', ' + hhmm(gen) + '. Refreshes every hour.<br>Data from DOE via WAQI, NASA FIRMS, Open-Meteo and Copernicus CAMS, Natural Earth.<br>A rough guide, not official readings.';
 }
 function renderAll(anim){
   setBand(A[SEL].nb); renderChips(); renderPlaces(); renderNow(anim); renderMeta();
@@ -1039,9 +1178,9 @@ function renderFollow(){ $$('[data-follow]').forEach(b => b.setAttribute('aria-c
 function openAdd(){
   if (store.get('hw-custom', []).length >= MAX_CUSTOM){ toast('Max ' + MAX_CUSTOM + ' added places. Remove one first.'); return; }
   $('#results').innerHTML = ''; $('#q').value = ''; FOUND = []; PICK = null;
-  $('#scrim').classList.add('on'); $('#addSheet').classList.add('on');
+  openSheet('addSheet');
 }
-function closeAdd(){ $('#scrim').classList.remove('on'); $('#addSheet').classList.remove('on'); if (document.activeElement) document.activeElement.blur(); }
+function closeAdd(){ closeSheets(); }
 async function searchPlaces(q){
   if (!q.trim()) return;
   $('#results').innerHTML = '<div class="msg">Looking… 🔎</div>';
@@ -1054,7 +1193,7 @@ async function searchPlaces(q){
 }
 function confirmPlace(x){
   PICK = x;
-  $('#results').innerHTML = '<div class="namebox"><label for="nm">What should we call it?</label><div class="row"><input id="nm" maxlength="28" value="' + esc(x.name) + '" enterkeyhint="done"><button type="button" class="btn" id="addGo">Add ✨</button></div><span class="tiny" style="margin:0">' + esc(x.sub || '') + '</span></div>';
+  $('#results').innerHTML = '<div class="namebox"><label for="nm">What should we call it?</label><div class="row3"><input id="nm" maxlength="28" value="' + esc(x.name) + '" enterkeyhint="done"><button type="button" class="btn" id="addGo">Add ✨</button></div><span class="tiny" style="margin:0">' + esc(x.sub || '') + '</span></div>';
 }
 async function addPlace(){
   if (!PICK) return;
@@ -1101,6 +1240,12 @@ function setView(v){
 document.addEventListener('click', e => {
   const t = e.target;
   if (t.closest('[data-add]')){ openAdd(); return; }
+  if (t.closest('[data-things]')){ openThings(); return; }
+  const th = t.closest('[data-thing]'); if (th){ const k = th.dataset.thing, i = PICKS.indexOf(k); if (i >= 0) PICKS.splice(i, 1); else PICKS.push(k); renderThings(); return; }
+  if (t.closest('[data-thingsdone]')){ thingsDone(); return; }
+  const dp = t.closest('[data-deep]'); if (dp){ openDeep(dp.dataset.deep); return; }
+  const hc = t.closest('[data-hour]'); if (hc){ showHour(+hc.dataset.hour); return; }
+  if (t.closest('[data-share]')){ shareCard(); return; }
   if (t.closest('[data-close]') || t.id === 'scrim'){ closeAdd(); return; }
   if (t.closest('#addGo')){ addPlace(); return; }
   const fd = t.closest('[data-found]'); if (fd){ confirmPlace(FOUND[+fd.dataset.found]); return; }
@@ -1110,21 +1255,21 @@ document.addEventListener('click', e => {
   const del = t.closest('[data-del]'); if (del){ removePlace(del.dataset.del); return; }
   const un = t.closest('[data-unhide]'); if (un){ unhide(un.dataset.unhide); return; }
   const pick = e.target.closest('[data-pick]'); if (pick){ select(+pick.dataset.pick, 0); if (VIEW === 'places') setView('now'); return; }
-  const go = e.target.closest('[data-go]'); if (go){ setView(go.dataset.go); return; }
+  const go = e.target.closest('[data-go]'); if (go){ closeSheets(); setView(go.dataset.go); return; }
   const tab = e.target.closest('.tabbar button'); if (tab){ setView(tab.dataset.view); return; }
   const seg = e.target.closest('.seg button'); if (seg && seg.dataset.m !== MAPMODE){ MAPMODE = seg.dataset.m; $$('.seg button').forEach(b => { b.classList.toggle('on', b === seg); b.setAttribute('aria-selected', b === seg); }); buildMap(); }
 });
 $('#play').addEventListener('click', () => { if (!playing && mapFrame >= 24) drawFrame(0); setPlay(!playing); });
 $('#t').addEventListener('input', e => { setPlay(false); drawFrame(+e.target.value); });
 $('#upd').addEventListener('click', () => load(true));
-let rsT = 0; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (D && VIEW === 'now') drawCompare(); }, 150); });
+let rsT = 0; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (D && VIEW === 'now') renderNow(0); }, 200); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdd(); if (e.key === 'Enter' && e.target.matches('.lb[data-pick]')) e.target.click(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible' || !D) return; if (Date.now() - Date.parse(D.meta.generated) > 50*60e3) load(true); else goHere(); });
 
 // pull down to refresh (the Home Screen app has no browser refresh)
 (function(){ const ptr = $('#ptr'); let y0 = null, dy = 0;
   ptr.innerHTML = puff(1, '');
-  addEventListener('touchstart', e => { y0 = scrollY <= 0 && !e.target.closest('.cmp,.mapbox,input,.bars,.chips,.sheet') ? e.touches[0].clientY : null; dy = 0; }, {passive:true});
+  addEventListener('touchstart', e => { y0 = scrollY <= 0 && !e.target.closest('.cmp,.mapbox,input,.strip,.others,.sheet') ? e.touches[0].clientY : null; dy = 0; }, {passive:true});
   addEventListener('touchmove', e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0);
     if (dy > 10){ ptr.classList.add('show'); ptr.style.transform = 'translateY(' + Math.min(90, dy*.5) + 'px) rotate(' + dy*1.5 + 'deg)'; } }, {passive:true});
   addEventListener('touchend', () => { if (y0 == null) return; y0 = null;
@@ -1143,16 +1288,17 @@ async function load(force){
       GEO ? Promise.resolve(GEO) : fetch('geo.json').then(r => r.json())]);
     const fresh = !D || d.meta.generated !== D.meta.generated;
     D = d; GEO = g; render();
-    if (force && !following()) toast(fresh ? 'Fresh air data 🌬️' : 'Already up to date ✨');
+    if (!myThings() && !store.get('hw-asked', false)){ store.set('hw-asked', true); setTimeout(openThings, 900); }
+    if (force && !following()) toast(fresh ? 'Updated' : 'Already up to date');
     goHere();
   } catch (e) {
-    if (!D) $('#loading').innerHTML = puff(2, 'big') + '<h2 style="justify-content:center">Couldn’t load the air data</h2><p class="sub">Check your connection, then pull down to try again.</p>';
+    if (!D) $('#loading').innerHTML = puff(2, 'big') + '<h2>Couldn’t load the air data</h2><p class="sub">Check your connection, then pull down to try again.</p>';
     else toast('No connection. Showing the last update.');
   } finally { $('#upd').classList.remove('spin'); }
 }
 $$('[data-logo]').forEach(el => el.innerHTML = puff(0, ''));
-$('#loading').innerHTML = puff(1, 'big') + '<h2 style="justify-content:center">Sniffing the air…</h2>';
-$('#faq').innerHTML = faqHTML(); renderFollow();
+$('#loading').innerHTML = puff(1, 'big') + '<h2>Checking the air…</h2>';
+$('#faq').innerHTML = faqHTML(); renderFollow(); renderThingsSum();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 load(false);
 </script>
