@@ -164,3 +164,11 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-10-19T22:00:00,bt,98.4,Kuala Lumpur + Batu Muda + Cheras,45,28,125,26,47.6
 2026-10-19T22:00:00,ah,107.1,Kuala Lumpur + Cheras + Batu Muda,45,28,260,22,50.8
 2026-10-19T22:00:00,gis,104.8,Kuala Lumpur + Batu Muda + Cheras,45,28,133,87,50.0
+2026-10-20T01:00:00,bd,126.2,Petaling Jaya + Batu Muda + Cheras,61,49,399,36,73.0
+2026-10-20T01:00:00,s16,125.3,Petaling Jaya + Cheras,61,49,399,35,72.7
+2026-10-20T01:00:00,klgcc,125.7,Petaling Jaya,61,49,399,36,72.8
+2026-10-20T01:00:00,saujana,124.4,Shah Alam + Petaling Jaya,61,49,278,125,72.3
+2026-10-20T01:00:00,mk,126.9,Batu Muda + Petaling Jaya + Cheras,61,49,398,36,73.2
+2026-10-20T01:00:00,bt,127.3,Batu Muda + Cheras + Petaling Jaya,61,49,440,27,73.4
+2026-10-20T01:00:00,ah,125.4,Cheras + Batu Muda,61,49,531,27,72.7
+2026-10-20T01:00:00,gis,126.8,Petaling Jaya + Batu Muda + Cheras,61,49,398,36,73.2
