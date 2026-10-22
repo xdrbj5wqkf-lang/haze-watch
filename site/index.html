@@ -54,7 +54,7 @@ h1,h2,h3{margin:0}
 @keyframes hazemove{to{transform:translate(10%,5%)}}
 
 /* layout */
-.app{max-width:620px;margin:0 auto;padding:calc(var(--safe-t) + 10px) 18px calc(112px + var(--safe-b))}
+.app{max-width:680px;margin:0 auto;padding:calc(var(--safe-t) + 10px) 18px calc(112px + var(--safe-b))}
 .side{display:none}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 6px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:18px;letter-spacing:-.03em}
@@ -117,16 +117,16 @@ h1,h2,h3{margin:0}
 .linkbtn{border:0;background:none;padding:4px 0;font-weight:800;font-size:14px;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
 
 /* my thing */
-.mine{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;margin-top:10px}
-.mine .ic{grid-row:span 3;font-size:56px;line-height:1}
+.mine{display:flex;gap:14px;align-items:center;margin-top:10px}
+.mine .ic{flex:0 0 auto;font-size:56px;line-height:1}
+.mine .mt{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
 .mine .nm{font-weight:800;font-size:17px}
-.verdict{justify-self:start;display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 14px 5px 10px;font-weight:900;font-size:20px;letter-spacing:-.01em}
+.verdict{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 14px 5px 10px;font-weight:900;font-size:20px;letter-spacing:-.01em}
 .verdict i{width:12px;height:12px;border-radius:50%;background:currentColor}
 .v0 .verdict,.mini-t.v0 .vw{background:var(--yes)}
 .v1 .verdict,.mini-t.v1 .vw{background:var(--mid)}
 .v2 .verdict,.mini-t.v2 .vw{background:var(--no)}
-.mine .nm,.mine .verdict,.mine .when{grid-column:2}
-.mine .when{font-weight:700;font-size:14.5px;color:var(--ink2);justify-self:start}
+.mine .when{font-weight:700;font-size:14.5px;color:var(--ink2)}
 .others{display:flex;gap:8px;overflow-x:auto;margin:12px -18px 0;padding:2px 18px 4px;scrollbar-width:none;scroll-snap-type:x proximity}
 .others::-webkit-scrollbar{display:none}
 .mini-t{flex:0 0 auto;scroll-snap-align:start;display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:18px;padding:8px 12px 8px 9px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
@@ -228,7 +228,8 @@ table.check{width:100%;border-collapse:collapse;font-size:13.5px}
 .sbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--panel);border-radius:999px;padding:9px 15px;font-weight:800;font-size:14px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .sbtn.primary,.sbtn.on{background:var(--ink);color:var(--field)}
 @media (prefers-color-scheme: dark){ .sbtn.primary,.sbtn.on{background:var(--bandc);color:#17142a} }
-.lbs{display:grid;gap:8px}
+.lbs{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.lbs > *{min-width:0}
 .lb{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--panel);border-radius:20px;padding:10px 12px;cursor:pointer;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .lb.sel{box-shadow:inset 0 0 0 3px var(--ink)}
 .lb.editing{cursor:default}
@@ -339,27 +340,54 @@ details.card .ans p{margin:0 0 10px}
 
 /* iPad and wider */
 @media (min-width:900px){
-  .app{max-width:1240px;display:grid;grid-template-columns:320px minmax(0,1fr);gap:32px;padding:calc(var(--safe-t) + 18px) 28px calc(120px + var(--safe-b))}
-  .side{display:block;position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto;padding:4px 4px 30px;scrollbar-width:none}
-  .side .brand{margin:4px 0 20px;font-size:19px}
+  .app{max-width:1240px;display:grid;grid-template-columns:minmax(250px,290px) minmax(0,1fr);gap:clamp(24px,3vw,44px);padding:calc(var(--safe-t) + 18px) clamp(20px,3vw,40px) calc(120px + var(--safe-b))}
+  .side{display:block;padding:4px 0 30px;min-width:0}
+  .side .brand{margin:4px 0 22px;font-size:20px}
   .side h2{font-size:17px;font-weight:900;margin:0 0 4px}
+  .side .lb{padding:9px 10px 9px 8px;gap:10px;border-radius:18px}
+  .side .lb .mini{display:none}
+  .side .lb .rk{flex-basis:18px;font-size:15px}
+  .side .lb .nm{font-size:15px}
+  .side .lb .ds{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .side .lb .vl{min-width:0;font-size:17px;padding:6px 8px}
+  .side .lb .del{width:40px;height:40px}
+  .main{min-width:0;max-width:860px}
   .main .top .brand{visibility:hidden}
   .tab-places,.placepill .chev{display:none!important}
-  .nowgrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:28px;align-items:start}
-  .nowgrid .hero{position:sticky;top:20px}
-  .num{font-size:clamp(160px,17vw,250px)}
-  .num.n3{font-size:clamp(120px,13vw,200px)}
-  .puffbtn{width:36%}
-  .others{margin:12px 0 0;padding:2px 0 4px;flex-wrap:wrap;overflow:visible}
+  .placepill{cursor:default}
+  /* hero: the number and Puff side by side, never overlapping */
+  .stage{display:flex;align-items:flex-end;gap:clamp(12px,2vw,28px);margin-top:18px}
+  .num,.num.n3{font-size:clamp(150px,19vw,260px)}
+  .puffbtn{position:static;flex:0 0 clamp(150px,18vw,220px);width:auto;max-width:none;margin:0 0 8px auto}
+  .bubble{right:10%;top:-8px}
+  .bandname b{font-size:32px}
+  .tag{font-size:25px;max-width:30ch}
+  /* activities: your sport beside a tidy grid of the rest */
+  .minerow{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:stretch;margin-top:14px}
+  .minerow > .panel{margin-top:0}
+  .others{margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;overflow:visible;align-content:start}
+  .mini-t{min-width:0}
+  .mini-t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* the day strip fills the width instead of scrolling */
+  .plan .strip{margin:12px 0 0;padding:22px 0 4px;overflow:visible}
+  .hc{flex:1 1 0;min-width:10px}
+  .hc i{width:100%}
+  .sharebtn{width:auto;padding:14px 26px;margin-left:auto;margin-right:0}
+  .sharerow{display:flex;justify-content:flex-end}
   .rows{display:none}
-  .deep{background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;overflow:visible}
-  .deep h2{padding:0;margin:8px 0 10px}
-  .deepgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .deep{background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;overflow:visible;margin-top:24px}
+  .deep h2{padding:0;margin:0 0 10px;font-size:17px;font-weight:900;color:var(--ink)}
+  .deepgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
   .deepgrid .card.wide{grid-column:1/-1}
-  .tabbar{width:340px}
-  .mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+  .tabbar{width:300px}
+  .mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px;align-items:start}
   .mapgrid .story{margin-top:0}
   .faq{grid-template-columns:1fr 1fr;align-items:start}
+}
+@media (min-width:900px) and (max-width:1099px){
+  .deepgrid{grid-template-columns:1fr}
+  .minerow{grid-template-columns:1fr}
+  .others{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
@@ -698,7 +726,7 @@ function checkHTML(){
 }
 function bannersHTML(p, a){
   let s = ''; const age = (Date.now() - Date.parse(D.meta.generated))/H;
-  if (age > 3) s += '<div class="banner"><span class="e">⏰</span><div><b>This is ' + Math.round(age) + ' hours old</b>Pull down or tap refresh to get the latest.</div></div>';
+  if (age > 3) s += '<div class="banner"><span class="e">⏰</span><div><b>These readings are ' + (age >= 48 ? Math.round(age/24) + ' days' : Math.round(age) + ' hours') + ' old</b>' + (OFFLINE ? 'The app couldn’t reach the server. Check your connection, then tap refresh.' : 'The update job is running late. Tap refresh in a little while.') + '</div></div>';
   if (a.sCat >= 2 && a.arrive) s += '<div class="banner smoke"><span class="e">💨</span><div><b>' + SMOKE[a.sCat] + ' incoming</b>From fires in ' + esc((p.srcs || []).map(x => regionName(x[0])).join(' and ') || 'the region') + ', reaching ' + esc(p.name) + ' around ' + when(idx(a.arrive)) + '.</div></div>';
   if (D.meta.firesStale) s += '<div class="banner"><span class="e">🛰️</span><div><b>Fire map not updated this hour</b>NASA didn’t reply, so the smoke uses the last fire picture. Air readings are still fresh.</div></div>';
   return s;
@@ -726,7 +754,7 @@ function mineHTML(p, a){
   let top = '';
   if (first){ const j = judge(p, a, first);
     top = '<section class="panel v' + j.r + '"><div class="ph"><h2>' + first.n + ' today</h2><button type="button" class="linkbtn" data-things>Change</button></div>' +
-      '<div class="mine"><span class="ic">' + first.e + '</span><span class="nm">' + esc(first.n) + ' at ' + esc(short(p)) + '</span><span class="verdict"><i></i>' + VERD[first.lvl][j.r] + '</span><span class="when">' + esc(j.when) + '</span></div></section>'; }
+      '<div class="mine"><span class="ic">' + first.e + '</span><span class="mt"><span class="nm">' + esc(first.n) + ' at ' + esc(short(p)) + '</span><span class="verdict"><i></i>' + VERD[first.lvl][j.r] + '</span><span class="when">' + esc(j.when) + '</span></span></div></section>'; }
   else top = '<section class="panel"><div class="ph"><h2>Your activities</h2></div><p class="lead" style="margin-top:8px">Tell us what you do outside and we’ll say when to do it.</p><button type="button" class="btn" data-things>Pick activities</button></section>';
   const rest = mine.slice(1).map(k => THINGS[k]).concat([WINDOWS]);
   const minis = rest.map(x => { const j = judge(p, a, x); return '<div class="mini-t v' + j.r + '" title="' + esc(j.when) + '"><span class="e">' + x.e + '</span><span><b>' + x.n + '</b><span class="vw">' + VERD[x.lvl][j.r] + '</span></span></div>'; });
@@ -792,8 +820,8 @@ function renderThingsSum(){ const t = myThings(); const el = $('#thingsSum'); if
 
 function renderNow(anim){
   const p = D.places[SEL], a = A[SEL], ban = bannersHTML(p, a);
-  $('#nowWrap').innerHTML = '<div class="nowgrid"><div>' + heroHTML(p, a) + '</div><div>' + (ban ? '<div class="banners">' + ban + '</div>' : '') + mineHTML(p, a) + planHTML(p, a) +
-    '<button type="button" class="sharebtn" data-share><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Share today’s air</button>' +
+  $('#nowWrap').innerHTML = '<div class="nowgrid"><div>' + heroHTML(p, a) + '</div><div>' + (ban ? '<div class="banners">' + ban + '</div>' : '') + '<div class="minerow">' + mineHTML(p, a) + '</div>' + planHTML(p, a) +
+    '<div class="sharerow"><button type="button" class="sharebtn" data-share><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Share today’s air</button></div>' +
     deepHTML(p, a) + '</div></div>';
   const hero = $('#hero'), num = $('#heroNum');
   if (anim){ hero.style.setProperty('--dx', anim + 'px'); hero.classList.add('swap'); }
@@ -809,10 +837,12 @@ function renderNow(anim){
   swipeHero();
   const st = $('#strip'); if (st) st.scrollLeft = 0;
 }
-let shownYear = null;
+let shownYear = null, OFFLINE = false;
 function fitNum(num){
   num.style.fontSize = ''; num.style.fontVariationSettings = '"YEAR" 1979';
-  const avail = num.parentElement.clientWidth * (num.textContent.length >= 3 ? .72 : .8), fs = parseFloat(getComputedStyle(num).fontSize), w = num.scrollWidth;
+  const stage = num.parentElement, pf = stage.querySelector('.puffbtn'), side = pf && getComputedStyle(pf).position === 'static';
+  const avail = side ? (stage.clientWidth - pf.offsetWidth - 24) * .98 : stage.clientWidth * (num.textContent.length >= 3 ? .72 : .8);
+  const fs = parseFloat(getComputedStyle(num).fontSize), w = num.scrollWidth;
   if (w > avail) num.style.fontSize = Math.floor(fs * avail / w) + 'px';
   num.style.fontVariationSettings = '';
 }
@@ -1255,7 +1285,7 @@ document.addEventListener('click', e => {
   const del = t.closest('[data-del]'); if (del){ removePlace(del.dataset.del); return; }
   const un = t.closest('[data-unhide]'); if (un){ unhide(un.dataset.unhide); return; }
   const pick = e.target.closest('[data-pick]'); if (pick){ select(+pick.dataset.pick, 0); if (VIEW === 'places') setView('now'); return; }
-  const go = e.target.closest('[data-go]'); if (go){ closeSheets(); setView(go.dataset.go); return; }
+  const go = e.target.closest('[data-go]'); if (go){ if (go.dataset.go === 'places' && innerWidth >= 900) return; closeSheets(); setView(go.dataset.go); return; }
   const tab = e.target.closest('.tabbar button'); if (tab){ setView(tab.dataset.view); return; }
   const seg = e.target.closest('.seg button'); if (seg && seg.dataset.m !== MAPMODE){ MAPMODE = seg.dataset.m; $$('.seg button').forEach(b => { b.classList.toggle('on', b === seg); b.setAttribute('aria-selected', b === seg); }); buildMap(); }
 });
@@ -1264,6 +1294,7 @@ $('#t').addEventListener('input', e => { setPlay(false); drawFrame(+e.target.val
 $('#upd').addEventListener('click', () => load(true));
 let rsT = 0; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (D && VIEW === 'now') renderNow(0); }, 200); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdd(); if (e.key === 'Enter' && e.target.matches('.lb[data-pick]')) e.target.click(); });
+addEventListener('pageshow', e => { if (e.persisted && D) load(true); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible' || !D) return; if (Date.now() - Date.parse(D.meta.generated) > 50*60e3) load(true); else goHere(); });
 
 // pull down to refresh (the Home Screen app has no browser refresh)
@@ -1284,16 +1315,16 @@ async function load(force){
   $('#upd').classList.add('spin');
   try {
     const [d, g] = await Promise.all([
-      fetch('data/latest.json' + (force ? '?t=' + Date.now() : ''), {cache: force ? 'reload' : 'default'}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch('data/latest.json?t=' + Date.now(), {cache:'no-store'}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
       GEO ? Promise.resolve(GEO) : fetch('geo.json').then(r => r.json())]);
-    const fresh = !D || d.meta.generated !== D.meta.generated;
+    const fresh = !D || d.meta.generated !== D.meta.generated; OFFLINE = false;
     D = d; GEO = g; render();
     if (!myThings() && !store.get('hw-asked', false)){ store.set('hw-asked', true); setTimeout(openThings, 900); }
     if (force && !following()) toast(fresh ? 'Updated' : 'Already up to date');
     goHere();
   } catch (e) {
     if (!D) $('#loading').innerHTML = puff(2, 'big') + '<h2>Couldn’t load the air data</h2><p class="sub">Check your connection, then pull down to try again.</p>';
-    else toast('No connection. Showing the last update.');
+    else { OFFLINE = true; renderNow(0); toast('Couldn’t reach the server. Showing the last update.'); }
   } finally { $('#upd').classList.remove('spin'); }
 }
 $$('[data-logo]').forEach(el => el.innerHTML = puff(0, ''));
