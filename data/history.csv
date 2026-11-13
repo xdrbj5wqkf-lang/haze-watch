@@ -1044,3 +1044,11 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-11-13T11:00:00,bt,24.9,Lorong Timur,66,61,0,0,45.9
 2026-11-13T11:00:00,ah,37.6,Cheras + Batu Muda,66,61,0,0,50.6
 2026-11-13T11:00:00,gis,39.7,Petaling Jaya + Batu Muda + Cheras,66,61,0,0,51.3
+2026-11-13T18:00:00,bd,43.7,Kuala Lumpur + Batu Muda + Cheras,17,20,0,0,29.8
+2026-11-13T18:00:00,s16,30.2,Kuala Lumpur + Cheras + Shah Alam,17,20,0,0,24.9
+2026-11-13T18:00:00,klgcc,44.4,Kuala Lumpur + Batu Muda + Cheras,17,20,0,0,30.1
+2026-11-13T18:00:00,saujana,28.5,Shah Alam,17,20,0,0,24.2
+2026-11-13T18:00:00,mk,57.3,Kuala Lumpur + Batu Muda + Cheras,17,20,0,0,34.8
+2026-11-13T18:00:00,bt,49.2,Kuala Lumpur + Batu Muda + Cheras,17,20,0,0,31.8
+2026-11-13T18:00:00,ah,43.9,Kuala Lumpur + Cheras + Batu Muda,17,20,0,0,29.9
+2026-11-13T18:00:00,gis,57.0,Kuala Lumpur + Batu Muda + Cheras,17,20,0,0,34.7
