@@ -1068,3 +1068,11 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-11-14T06:00:00,bt,83.2,Batu Muda + Cheras + Petaling Jaya,22,13,0,0,35.5
 2026-11-14T06:00:00,ah,62.2,Cheras + Batu Muda,22,13,0,0,27.8
 2026-11-14T06:00:00,gis,70.1,Petaling Jaya + Batu Muda + Cheras,22,13,0,0,30.7
+2026-11-14T14:00:00,bd,61.4,Petaling Jaya + Batu Muda + Cheras,16,22,0,0,38.7
+2026-11-14T14:00:00,s16,43.5,Petaling Jaya + Cheras,16,22,0,0,32.1
+2026-11-14T14:00:00,klgcc,45.0,Petaling Jaya,16,22,0,0,32.7
+2026-11-14T14:00:00,saujana,48.2,Shah Alam + Petaling Jaya,16,22,0,0,33.8
+2026-11-14T14:00:00,mk,74.4,Batu Muda + Petaling Jaya + Cheras,16,22,0,0,43.5
+2026-11-14T14:00:00,bt,84.2,Batu Muda + Cheras + Petaling Jaya,16,22,0,0,47.1
+2026-11-14T14:00:00,ah,63.9,Cheras + Batu Muda,16,22,0,0,39.6
+2026-11-14T14:00:00,gis,71.7,Petaling Jaya + Batu Muda + Cheras,16,22,0,0,42.5
