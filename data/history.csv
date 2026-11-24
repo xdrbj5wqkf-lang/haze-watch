@@ -1300,3 +1300,11 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-11-24T00:00:00,bt,13.8,Batu Muda + Cheras,28,24,0,0,18.8
 2026-11-24T00:00:00,ah,18.2,Cheras + Batu Muda,28,24,0,0,20.4
 2026-11-24T00:00:00,gis,16.4,Batu Muda + Cheras + Shah Alam,28,24,0,0,19.7
+2026-11-24T10:00:00,bd,16.6,Batu Muda + Cheras + Shah Alam,39,25,0,0,16.8
+2026-11-24T10:00:00,s16,19.3,Cheras + Shah Alam + Batu Muda,39,25,0,0,17.8
+2026-11-24T10:00:00,klgcc,18.5,Batu Muda + Cheras + Shah Alam,39,25,0,0,17.5
+2026-11-24T10:00:00,saujana,29.8,Shah Alam,39,25,0,0,21.6
+2026-11-24T10:00:00,mk,12.3,Batu Muda + Cheras,39,25,0,0,15.2
+2026-11-24T10:00:00,bt,12.5,Batu Muda + Cheras,39,25,0,0,15.3
+2026-11-24T10:00:00,ah,14.9,Cheras + Batu Muda,39,25,0,0,16.1
+2026-11-24T10:00:00,gis,15.2,Batu Muda + Cheras + Shah Alam,39,25,0,0,16.2
