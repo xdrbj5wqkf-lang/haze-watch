@@ -1324,3 +1324,11 @@ hour,place,obs_pm,obs_station,cams_now,cams_plus24,score_now,score_plus24,est_pl
 2026-11-25T04:00:00,bt,16.1,Kuala Lumpur + Cheras,15,16,0,0,16.4
 2026-11-25T04:00:00,ah,14.2,Kuala Lumpur + Cheras,15,16,0,0,15.7
 2026-11-25T04:00:00,gis,15.7,Kuala Lumpur + Cheras,15,16,0,0,16.3
+2026-11-25T14:00:00,bd,11.1,Batu Muda + Cheras + Shah Alam,42,37,0,0,25.6
+2026-11-25T14:00:00,s16,11.9,Cheras + Shah Alam + Batu Muda,42,37,0,0,25.9
+2026-11-25T14:00:00,klgcc,11.4,Batu Muda + Cheras + Shah Alam,42,37,0,0,25.7
+2026-11-25T14:00:00,saujana,11.5,Shah Alam,42,37,0,0,25.8
+2026-11-25T14:00:00,mk,9.9,Batu Muda + Cheras,42,37,0,0,25.2
+2026-11-25T14:00:00,bt,9.1,Lorong Timur,42,37,0,0,24.9
+2026-11-25T14:00:00,ah,12.4,Cheras + Batu Muda,42,37,0,0,26.1
+2026-11-25T14:00:00,gis,10.2,Batu Muda + Cheras + Shah Alam,42,37,0,0,25.3
